@@ -6,6 +6,7 @@ import {
   ShareIcon,
   XMarkIcon,
 } from "../components/icons";
+import IconButton from "../components/ui/IconButton";
 import PreservedText from "../components/PreservedText";
 import { getPosts } from "../api/posts";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
@@ -234,14 +235,15 @@ function Board() {
             value={searchQuery}
           />
           {searchQuery ? (
-            <button
-              aria-label="검색어 지우기"
-              className="absolute right-3 top-1/2 flex h-4 w-4 -translate-y-1/2 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-60"
+            <IconButton
+              ariaLabel="검색어 지우기"
+              className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60"
               onClick={handleClearSearch}
-              type="button"
+              size="xs"
+              variant="subtle"
             >
               <XMarkIcon className="h-3.5 w-3.5" />
-            </button>
+            </IconButton>
           ) : null}
         </label>
       </div>
@@ -384,14 +386,14 @@ function Board() {
             {shareMessage}
           </p>
         ) : null}
-        <button
-          aria-label="페이지 링크와 설명 복사"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-black transition-colors hover:border-black hover:bg-black hover:text-white focus:border-black focus:bg-black focus:text-white focus:outline-none"
+        <IconButton
+          ariaLabel="페이지 링크와 설명 복사"
           onClick={handleShareClick}
-          type="button"
+          size="floating"
+          variant="floating"
         >
           <ShareIcon className="h-5 w-5" />
-        </button>
+        </IconButton>
       </div>
     </main>
   );

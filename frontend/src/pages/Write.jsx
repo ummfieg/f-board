@@ -6,6 +6,8 @@ import FontInfoPopover from "../components/FontInfoPopover";
 import { ArrowLongLeftIcon } from "../components/icons";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
+import Button from "../components/ui/Button";
+import IconButton from "../components/ui/IconButton";
 import {
   createRecommendationFromPost,
   createRecommendationFromResponse,
@@ -273,14 +275,14 @@ function Write({ onAuthExpired = () => {} }) {
         ].join(" ")}
       >
         {isEditMode ? (
-          <button
+          <IconButton
             aria-label="이전으로"
-            className="mb-16 flex h-6 w-8 cursor-pointer items-center text-black transition-colors hover:text-[#d4d4d4]"
+            className="mb-16"
             onClick={() => navigate(-1)}
-            type="button"
+            size="back"
           >
             <ArrowLongLeftIcon className="h-6 w-8" />
-          </button>
+          </IconButton>
         ) : null}
 
         {isLoadingPost ? (
@@ -417,13 +419,11 @@ function Write({ onAuthExpired = () => {} }) {
                 value={content}
               />
               <div className="mt-3 flex justify-end">
-                <button
-                  className="cursor-pointer rounded-md border border-gray-300 px-5 py-2 text-sm text-black transition-colors hover:bg-black hover:text-white"
+                <Button
                   onClick={handleRecommend}
-                  type="button"
                 >
                   폰트 추천
-                </button>
+                </Button>
               </div>
               <p className="mt-2 text-right text-xs text-[#d4d4d4]">
                 문장을 수정하면 다른 폰트가 추천될 수 있어요.
@@ -450,11 +450,9 @@ function Write({ onAuthExpired = () => {} }) {
                     </div>
 
                     <div className="mt-6 flex justify-end">
-                      <button
-                        className="cursor-pointer rounded-md border border-gray-300 px-5 py-2 text-sm text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white disabled:hover:text-gray-300"
+                      <Button
                         disabled={isSubmittingPost}
                         onClick={isEditMode ? handleUpdatePost : handleSubmitPost}
-                        type="button"
                       >
                         {isSubmittingPost
                           ? isEditMode
@@ -463,7 +461,7 @@ function Write({ onAuthExpired = () => {} }) {
                           : isEditMode
                             ? "수정하기"
                             : "등록 하기"}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (

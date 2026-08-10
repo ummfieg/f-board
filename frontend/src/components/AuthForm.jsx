@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "./icons";
+import Button from "./ui/Button";
+import IconButton from "./ui/IconButton";
 
 function TypingText({ text }) {
   const [typedText, setTypedText] = useState("");
@@ -185,20 +187,17 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
                 type={isPasswordVisible ? "text" : "password"}
                 value={password}
               />
-              <button
-                aria-label={
-                  isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"
-                }
-                className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center text-black transition-colors hover:text-[#d4d4d4]"
+              <IconButton
+                ariaLabel={isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
                 onClick={handleTogglePasswordVisible}
-                type="button"
               >
                 {isPasswordVisible ? (
                   <EyeIcon className="h-4 w-4" />
                 ) : (
                   <EyeSlashIcon className="h-4 w-4" />
                 )}
-              </button>
+              </IconButton>
             </div>
           </div>
 
@@ -213,13 +212,14 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
             {helperMessage}
           </p>
 
-          <button
-            className="mt-6 h-10 w-full cursor-pointer rounded-md border border-gray-300 text-sm font-normal text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white disabled:hover:text-gray-300"
+          <Button
+            className="mt-6"
             disabled={isSubmitting}
+            size="full"
             type="submit"
           >
             {isSubmitting ? "처리 중..." : buttonLabel}
-          </button>
+          </Button>
         </form>
 
         <Link

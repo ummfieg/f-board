@@ -1,5 +1,6 @@
 import { useId, useState } from "react";
 import { InformationCircleIcon, XMarkIcon } from "./icons";
+import IconButton from "./ui/IconButton";
 
 function isAllowedLicenseItem(item) {
   const allowedText = String(item.allowed ?? "").trim().toLowerCase();
@@ -70,14 +71,13 @@ function FontInfoPopover({ font }) {
 
           <div className="-mt-2 flex items-center justify-between gap-4">
             <p className="text-sm font-semibold text-black">{font.name}</p>
-            <button
-              aria-label="폰트 정보 닫기"
-              className="flex h-5 w-5 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-50"
+            <IconButton
+              ariaLabel="폰트 정보 닫기"
               onClick={() => setIsOpen(false)}
-              type="button"
+              variant="subtle"
             >
               <XMarkIcon className="h-4 w-4" />
-            </button>
+            </IconButton>
           </div>
 
           <dl className="mt-4 space-y-3 text-xs leading-relaxed text-black">

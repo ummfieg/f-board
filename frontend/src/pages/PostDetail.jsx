@@ -14,6 +14,8 @@ import {
   XMarkIcon,
 } from "../components/icons";
 import PreservedText from "../components/PreservedText";
+import Button from "../components/ui/Button";
+import IconButton from "../components/ui/IconButton";
 import { createWebFontStyle } from "../utils/webFont";
 
 const fallbackFontReason =
@@ -259,14 +261,14 @@ function PostDetail({ user }) {
   return (
     <main className="p-6">
       <section className="mx-auto w-full max-w-[720px] pt-8 pb-12">
-        <button
+        <IconButton
           aria-label="이전으로"
-          className="mb-16 flex h-6 w-8 cursor-pointer items-center text-black transition-colors hover:text-[#d4d4d4]"
+          className="mb-16"
           onClick={() => navigate(-1)}
-          type="button"
+          size="back"
         >
           <ArrowLongLeftIcon className="h-6 w-8" />
-        </button>
+        </IconButton>
 
         <div className="grid min-h-[148px] grid-cols-[1fr_auto] items-start gap-5 overflow-visible pr-2">
           <div className="ml-auto flex h-full w-[68%] flex-col">
@@ -389,14 +391,14 @@ function PostDetail({ user }) {
                     {comment.date} · {comment.time}
                   </time>
                   {user?.id === comment.userId ? (
-                    <button
-                      aria-label="댓글 삭제"
-                      className="flex h-4 w-4 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-50"
+                    <IconButton
+                      ariaLabel="댓글 삭제"
                       onClick={() => handleDeleteComment(comment.id)}
-                      type="button"
+                      size="xs"
+                      variant="subtle"
                     >
                       <XMarkIcon className="h-4 w-4" />
-                    </button>
+                    </IconButton>
                   ) : (
                     <span aria-hidden="true" className="h-4 w-4" />
                   )}
@@ -423,14 +425,14 @@ function PostDetail({ user }) {
       </section>
 
       <div className="fixed bottom-8 z-30 [right:max(1.5rem,calc((100vw-1024px)/2+1.5rem))]">
-        <button
-          aria-label="글쓰기"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-black transition-colors hover:border-black hover:bg-black hover:text-white focus:border-black focus:bg-black focus:text-white focus:outline-none"
+        <IconButton
+          ariaLabel="글쓰기"
           onClick={handleWriteClick}
-          type="button"
+          size="floating"
+          variant="floating"
         >
           <PencilSquareIcon className="h-5 w-5" />
-        </button>
+        </IconButton>
       </div>
 
       {isDeleteDialogOpen ? (
@@ -451,14 +453,13 @@ function PostDetail({ user }) {
               >
                 취소
               </button>
-              <button
-                className="cursor-pointer rounded-md border border-gray-300 px-4 py-1.5 text-sm text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:text-[#d4d4d4] disabled:hover:bg-white disabled:hover:text-[#d4d4d4]"
+              <Button
                 disabled={isDeletingPost}
                 onClick={handleDeletePost}
-                type="button"
+                size="sm"
               >
                 {isDeletingPost ? "삭제 중" : "삭제"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
