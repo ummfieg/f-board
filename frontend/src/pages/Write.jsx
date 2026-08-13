@@ -276,7 +276,7 @@ function Write({ onAuthExpired = () => {} }) {
           <Button
             className="mb-16"
             onClick={() => navigate(`/posts/${postId}`)}
-            size="xs"
+            size="sm"
             variant="text"
           >
             게시글로

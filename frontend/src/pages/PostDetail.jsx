@@ -17,6 +17,7 @@ import FloatingActionStack from "../components/FloatingActionStack";
 import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
 import IconButton from "../components/ui/IconButton";
+import TextActionButton from "../components/ui/TextActionButton";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle } from "../utils/webFont";
 
@@ -274,7 +275,7 @@ function PostDetail({ user }) {
         <Button
           as={Link}
           className="mb-16 inline-flex no-underline"
-          size="xs"
+          size="sm"
           to="/"
           variant="text"
         >
@@ -326,25 +327,21 @@ function PostDetail({ user }) {
           />
 
           <div className="mt-8 flex items-center justify-between">
-            <p className="text-sm font-semibold text-black">
+            <p className="text-sm font-semibold leading-5 text-black">
               {postDetail.author}
             </p>
             {user?.id === postDetail.authorId ? (
               <div className="flex items-center gap-4">
-                <button
-                  className="cursor-pointer text-xs text-black transition-colors hover:text-[#d4d4d4]"
+                <TextActionButton
                   onClick={() => navigate(`/posts/${postId}/edit`)}
-                  type="button"
                 >
                   수정
-                </button>
-                <button
-                  className="cursor-pointer text-xs text-black transition-colors hover:text-[#d4d4d4]"
+                </TextActionButton>
+                <TextActionButton
                   onClick={() => setIsDeleteDialogOpen(true)}
-                  type="button"
                 >
                   삭제
-                </button>
+                </TextActionButton>
               </div>
             ) : null}
           </div>
@@ -382,37 +379,39 @@ function PostDetail({ user }) {
             <ul className="mt-6 space-y-5">
               {comments.map((comment) => (
                 <li
-                  className="grid grid-cols-[120px_1fr_auto_auto] items-start gap-4 text-xs"
+                  className="grid grid-cols-[120px_minmax(0,1fr)_auto] items-start gap-4 text-xs"
                   key={comment.id}
                 >
                   {/*
                     댓글 삭제 권한은 서버에서 최종 검증하고,
                     화면에서는 작성자 본인에게만 삭제 버튼을 보여준다.
                   */}
-                  <p className="text-sm font-extrabold text-black">
+                  <p className="text-sm font-semibold leading-5 text-black">
                     {comment.nickname}
                   </p>
-                  <p className="text-sm leading-relaxed text-black">
+                  <p className="min-w-0 break-words text-sm leading-5 text-black">
                     {comment.content}
                   </p>
-                  <time
-                    className="text-sm text-[#d4d4d4]"
-                    dateTime={comment.dateTime}
-                  >
-                    {comment.date} · {comment.time}
-                  </time>
-                  {user?.id === comment.userId ? (
-                    <IconButton
-                      ariaLabel="댓글 삭제"
-                      onClick={() => handleDeleteComment(comment.id)}
-                      size="xs"
-                      variant="subtle"
+                  <div className="flex h-5 items-center gap-3 self-start leading-none">
+                    <time
+                      className="whitespace-nowrap text-sm leading-5 text-[#d4d4d4]"
+                      dateTime={comment.dateTime}
                     >
-                      <XMarkIcon className="h-4 w-4" />
-                    </IconButton>
-                  ) : (
-                    <span aria-hidden="true" className="h-4 w-4" />
-                  )}
+                      {comment.date} · {comment.time}
+                    </time>
+                    {user?.id === comment.userId ? (
+                      <IconButton
+                        ariaLabel="댓글 삭제"
+                        onClick={() => handleDeleteComment(comment.id)}
+                        size="sm"
+                        variant="muted"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </IconButton>
+                    ) : (
+                      <span aria-hidden="true" className="h-5 w-5" />
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>

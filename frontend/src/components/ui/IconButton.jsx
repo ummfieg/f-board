@@ -8,6 +8,7 @@ const sizeClassNames = {
 const variantClassNames = {
   ghost: "text-black transition-colors hover:text-[#d4d4d4]",
   subtle: "text-black transition-opacity hover:opacity-50",
+  muted: "text-gray-400 transition-colors hover:text-black focus:text-black",
   floating:
     "rounded-md border border-gray-300 bg-white text-black transition-colors hover:border-black hover:bg-black hover:text-white focus:border-black focus:bg-black focus:text-white focus:outline-none",
 };
