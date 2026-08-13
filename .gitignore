@@ -30,3 +30,7 @@ dist-ssr
 .venv/
 __pycache__/
 *.pyc
+
+# Generated data
+backend/chroma_db/
+backend/data/font_guides_embedded.json

@@ -1,18 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
+  ArrowUpIcon,
   ChatBubbleOvalLeftIcon,
   MagnifyingGlassIcon,
+  PencilSquareIcon,
   ShareIcon,
   XMarkIcon,
 } from "../components/icons";
+import FloatingActionStack from "../components/FloatingActionStack";
+import IconButton from "../components/ui/IconButton";
 import PreservedText from "../components/PreservedText";
 import { getPosts } from "../api/posts";
+import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
 const postsPerPage = 9;
-const fallbackPageDescription =
-  "글의 분위기를 분석해 어울리는 폰트를 적용하고, 기록해보세요.";
+
+function getConfiguredShareOrigin() {
+  const configuredSiteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.trim();
+
+  if (!configuredSiteUrl) {
+    return "";
+  }
+
+  return configuredSiteUrl.replace(/\/+$/, "");
+}
 
 function formatPostDate(createdAt) {
   const date = new Date(createdAt);
@@ -46,7 +59,8 @@ function createBoardPostCardData(post) {
   };
 }
 
-function Board() {
+function Board({ user }) {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +69,7 @@ function Board() {
   const [postsErrorMessage, setPostsErrorMessage] = useState("");
   const [shareMessage, setShareMessage] = useState("");
   const shareMessageTimerRef = useRef(null);
+  const shouldShowScrollTopButton = useScrollThreshold();
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
   const hasVisiblePosts = posts.length > 0;
@@ -102,14 +117,23 @@ function Board() {
     setPostsErrorMessage("");
   };
 
-  const buildShareText = () => {
-    const descriptionMetaTag = document.querySelector(
-      'meta[name="description"]',
-    );
-    const pageDescription =
-      descriptionMetaTag?.getAttribute("content") ?? fallbackPageDescription;
+  const buildShareUrl = () => {
+    const configuredShareOrigin = getConfiguredShareOrigin();
+    const currentPath = [
+      window.location.pathname,
+      window.location.search,
+      window.location.hash,
+    ].join("");
 
-    return `${window.location.href}\n${pageDescription}`;
+    if (!configuredShareOrigin) {
+      return window.location.href;
+    }
+
+    try {
+      return new URL(currentPath, `${configuredShareOrigin}/`).toString();
+    } catch {
+      return window.location.href;
+    }
   };
 
   const copyTextWithTextarea = (text) => {
@@ -133,19 +157,19 @@ function Board() {
   };
 
   const copyPageShareText = async () => {
-    const shareText = buildShareText();
+    const shareUrl = buildShareUrl();
 
     if (navigator.clipboard) {
       try {
-        await navigator.clipboard.writeText(shareText);
+        await navigator.clipboard.writeText(shareUrl);
         return;
       } catch {
-        copyTextWithTextarea(shareText);
+        copyTextWithTextarea(shareUrl);
         return;
       }
     }
 
-    copyTextWithTextarea(shareText);
+    copyTextWithTextarea(shareUrl);
   };
 
   const showShareMessage = (message) => {
@@ -163,10 +187,26 @@ function Board() {
   const handleShareClick = async () => {
     try {
       await copyPageShareText();
-      showShareMessage("좋은 폰트는 나눠야죠.");
+      showShareMessage("링크가 복사되었습니다. 좋은 폰트는 나눠야죠.");
     } catch {
       showShareMessage("복사하지 못했어요");
     }
+  };
+
+  const handleWriteClick = () => {
+    if (user) {
+      navigate("/write");
+      return;
+    }
+
+    navigate("/login");
+  };
+
+  const handleScrollTopClick = () => {
+    window.scrollTo({
+      behavior: "smooth",
+      top: 0,
+    });
   };
 
   useEffect(() => {
@@ -219,7 +259,26 @@ function Board() {
 
   return (
     <main className="p-6">
-      <div className="flex flex-col items-center pt-10">
+      <div className="mx-auto flex w-full max-w-[720px] justify-end pt-6">
+        <div className="relative">
+          <IconButton
+            ariaLabel="페이지 링크 복사"
+            className="h-10 w-10 rounded-md border border-gray-300"
+            onClick={handleShareClick}
+            size="sm"
+            variant="ghost"
+          >
+            <ShareIcon className="h-4 w-4" />
+          </IconButton>
+          {shareMessage ? (
+            <p className="absolute right-0 top-12 z-20 w-max rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs text-black shadow-[0_6px_18px_rgba(15,23,42,0.08)]">
+              {shareMessage}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="flex flex-col items-center pt-4">
         <p className="mb-5 text-center text-base font-normal text-black">
           글에 어울리는 폰트를 검색하고 기록해보세요
         </p>
@@ -234,14 +293,15 @@ function Board() {
             value={searchQuery}
           />
           {searchQuery ? (
-            <button
-              aria-label="검색어 지우기"
-              className="absolute right-3 top-1/2 flex h-4 w-4 -translate-y-1/2 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-60"
+            <IconButton
+              ariaLabel="검색어 지우기"
+              className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60"
               onClick={handleClearSearch}
-              type="button"
+              size="xs"
+              variant="subtle"
             >
               <XMarkIcon className="h-3.5 w-3.5" />
-            </button>
+            </IconButton>
           ) : null}
         </label>
       </div>
@@ -378,21 +438,26 @@ function Board() {
         </section>
       )}
 
-      <div className="fixed bottom-8 z-30 flex items-center gap-3 [right:max(1.5rem,calc((100vw-1024px)/2+1.5rem))]">
-        {shareMessage ? (
-          <p className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs text-black shadow-[0_6px_18px_rgba(15,23,42,0.08)]">
-            {shareMessage}
-          </p>
+      <FloatingActionStack>
+        {shouldShowScrollTopButton ? (
+          <IconButton
+            ariaLabel="상단으로"
+            onClick={handleScrollTopClick}
+            size="floating"
+            variant="floating"
+          >
+            <ArrowUpIcon className="h-5 w-5" />
+          </IconButton>
         ) : null}
-        <button
-          aria-label="페이지 링크와 설명 복사"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-black transition-colors hover:border-black hover:bg-black hover:text-white focus:border-black focus:bg-black focus:text-white focus:outline-none"
-          onClick={handleShareClick}
-          type="button"
+        <IconButton
+          ariaLabel="글쓰기"
+          onClick={handleWriteClick}
+          size="floating"
+          variant="floating"
         >
-          <ShareIcon className="h-5 w-5" />
-        </button>
-      </div>
+          <PencilSquareIcon className="h-5 w-5" />
+        </IconButton>
+      </FloatingActionStack>
     </main>
   );
 }

@@ -8,12 +8,17 @@ import {
 import { deletePost, getPost } from "../api/posts";
 import FontInfoPopover from "../components/FontInfoPopover";
 import {
-  ArrowLongLeftIcon,
+  ArrowUpIcon,
   ChatBubbleLeftEllipsisIcon,
   PencilSquareIcon,
   XMarkIcon,
 } from "../components/icons";
+import FloatingActionStack from "../components/FloatingActionStack";
 import PreservedText from "../components/PreservedText";
+import Button from "../components/ui/Button";
+import IconButton from "../components/ui/IconButton";
+import TextActionButton from "../components/ui/TextActionButton";
+import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle } from "../utils/webFont";
 
 const fallbackFontReason =
@@ -129,6 +134,7 @@ function PostDetail({ user }) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const shouldShowScrollTopButton = useScrollThreshold();
 
   const handleCommentContentChange = (event) => {
     setCommentContent(event.target.value);
@@ -202,6 +208,13 @@ function PostDetail({ user }) {
     navigate("/login");
   };
 
+  const handleScrollTopClick = () => {
+    window.scrollTo({
+      behavior: "smooth",
+      top: 0,
+    });
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -259,14 +272,15 @@ function PostDetail({ user }) {
   return (
     <main className="p-6">
       <section className="mx-auto w-full max-w-[720px] pt-8 pb-12">
-        <button
-          aria-label="이전으로"
-          className="mb-16 flex h-6 w-8 cursor-pointer items-center text-black transition-colors hover:text-[#d4d4d4]"
-          onClick={() => navigate(-1)}
-          type="button"
+        <Button
+          as={Link}
+          className="mb-16 inline-flex no-underline"
+          size="sm"
+          to="/"
+          variant="text"
         >
-          <ArrowLongLeftIcon className="h-6 w-8" />
-        </button>
+          목록으로
+        </Button>
 
         <div className="grid min-h-[148px] grid-cols-[1fr_auto] items-start gap-5 overflow-visible pr-2">
           <div className="ml-auto flex h-full w-[68%] flex-col">
@@ -313,25 +327,21 @@ function PostDetail({ user }) {
           />
 
           <div className="mt-8 flex items-center justify-between">
-            <p className="text-sm font-semibold text-black">
+            <p className="text-sm font-semibold leading-5 text-black">
               {postDetail.author}
             </p>
             {user?.id === postDetail.authorId ? (
               <div className="flex items-center gap-4">
-                <button
-                  className="cursor-pointer text-xs text-black transition-colors hover:text-[#d4d4d4]"
+                <TextActionButton
                   onClick={() => navigate(`/posts/${postId}/edit`)}
-                  type="button"
                 >
                   수정
-                </button>
-                <button
-                  className="cursor-pointer text-xs text-black transition-colors hover:text-[#d4d4d4]"
+                </TextActionButton>
+                <TextActionButton
                   onClick={() => setIsDeleteDialogOpen(true)}
-                  type="button"
                 >
                   삭제
-                </button>
+                </TextActionButton>
               </div>
             ) : null}
           </div>
@@ -351,14 +361,14 @@ function PostDetail({ user }) {
               placeholder="댓글을 입력하세요."
               value={commentContent}
             />
-            <button
-              className="cursor-pointer px-2 text-xs text-black transition-colors hover:text-[#d4d4d4] disabled:cursor-not-allowed disabled:text-[#d4d4d4]"
+            <Button
               disabled={isSubmittingComment}
               onClick={handleCreateComment}
-              type="button"
+              size="xs"
+              variant="text"
             >
               {isSubmittingComment ? "등록 중" : "등록"}
-            </button>
+            </Button>
           </div>
 
           <p className="mt-2 min-h-5 text-left text-sm text-neutral-600">
@@ -369,37 +379,39 @@ function PostDetail({ user }) {
             <ul className="mt-6 space-y-5">
               {comments.map((comment) => (
                 <li
-                  className="grid grid-cols-[120px_1fr_auto_auto] items-start gap-4 text-xs"
+                  className="grid grid-cols-[120px_minmax(0,1fr)_auto] items-start gap-4 text-xs"
                   key={comment.id}
                 >
                   {/*
                     댓글 삭제 권한은 서버에서 최종 검증하고,
                     화면에서는 작성자 본인에게만 삭제 버튼을 보여준다.
                   */}
-                  <p className="text-sm font-extrabold text-black">
+                  <p className="text-sm font-semibold leading-5 text-black">
                     {comment.nickname}
                   </p>
-                  <p className="text-sm leading-relaxed text-black">
+                  <p className="min-w-0 break-words text-sm leading-5 text-black">
                     {comment.content}
                   </p>
-                  <time
-                    className="text-sm text-[#d4d4d4]"
-                    dateTime={comment.dateTime}
-                  >
-                    {comment.date} · {comment.time}
-                  </time>
-                  {user?.id === comment.userId ? (
-                    <button
-                      aria-label="댓글 삭제"
-                      className="flex h-4 w-4 cursor-pointer items-center justify-center text-black transition-opacity hover:opacity-50"
-                      onClick={() => handleDeleteComment(comment.id)}
-                      type="button"
+                  <div className="flex h-5 items-center gap-3 self-start leading-none">
+                    <time
+                      className="whitespace-nowrap text-sm leading-5 text-[#d4d4d4]"
+                      dateTime={comment.dateTime}
                     >
-                      <XMarkIcon className="h-4 w-4" />
-                    </button>
-                  ) : (
-                    <span aria-hidden="true" className="h-4 w-4" />
-                  )}
+                      {comment.date} · {comment.time}
+                    </time>
+                    {user?.id === comment.userId ? (
+                      <IconButton
+                        ariaLabel="댓글 삭제"
+                        onClick={() => handleDeleteComment(comment.id)}
+                        size="sm"
+                        variant="muted"
+                      >
+                        <XMarkIcon className="h-4 w-4" />
+                      </IconButton>
+                    ) : (
+                      <span aria-hidden="true" className="h-5 w-5" />
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -410,28 +422,29 @@ function PostDetail({ user }) {
           )}
         </section>
 
-        <div className="mt-16 flex justify-end">
-          <Link
-            className="rounded-md border border-gray-300 px-5 py-2 text-sm text-black no-underline transition-colors hover:bg-black hover:text-white"
-            to="/"
-          >
-            목록으로
-          </Link>
-        </div>
-
         <p className="sr-only">현재 게시글 ID는 {postId}입니다.</p>
       </section>
 
-      <div className="fixed bottom-8 z-30 [right:max(1.5rem,calc((100vw-1024px)/2+1.5rem))]">
-        <button
-          aria-label="글쓰기"
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-md border border-gray-300 bg-white text-black transition-colors hover:border-black hover:bg-black hover:text-white focus:border-black focus:bg-black focus:text-white focus:outline-none"
+      <FloatingActionStack>
+        {shouldShowScrollTopButton ? (
+          <IconButton
+            ariaLabel="상단으로"
+            onClick={handleScrollTopClick}
+            size="floating"
+            variant="floating"
+          >
+            <ArrowUpIcon className="h-5 w-5" />
+          </IconButton>
+        ) : null}
+        <IconButton
+          ariaLabel="글쓰기"
           onClick={handleWriteClick}
-          type="button"
+          size="floating"
+          variant="floating"
         >
           <PencilSquareIcon className="h-5 w-5" />
-        </button>
-      </div>
+        </IconButton>
+      </FloatingActionStack>
 
       {isDeleteDialogOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-6 backdrop-blur-[1px]">
@@ -451,14 +464,13 @@ function PostDetail({ user }) {
               >
                 취소
               </button>
-              <button
-                className="cursor-pointer rounded-md border border-gray-300 px-4 py-1.5 text-sm text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:text-[#d4d4d4] disabled:hover:bg-white disabled:hover:text-[#d4d4d4]"
+              <Button
                 disabled={isDeletingPost}
                 onClick={handleDeletePost}
-                type="button"
+                size="sm"
               >
                 {isDeletingPost ? "삭제 중" : "삭제"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

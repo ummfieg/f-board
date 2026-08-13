@@ -1,5 +1,6 @@
 import asyncio
 import json
+import sys
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -10,7 +11,7 @@ async def call_font_tool(
     arguments: dict | None = None,
 ):
     server_params = StdioServerParameters(
-        command="python",
+        command=sys.executable,
         args=["-m", "font_mcp.font_server"],
     )
 

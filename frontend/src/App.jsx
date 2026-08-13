@@ -70,7 +70,7 @@ function App() {
       <ScrollToTop />
       <Header onAccountClick={handleAccountClick} user={user} />
       <Routes>
-        <Route element={<Board />} path="/" />
+        <Route element={<Board user={user} />} path="/" />
         <Route
           element={
             user ? (

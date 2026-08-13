@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "./icons";
+import Button from "./ui/Button";
+import IconButton from "./ui/IconButton";
 
 function TypingText({ text }) {
   const [typedText, setTypedText] = useState("");
@@ -31,7 +33,17 @@ function TypingText({ text }) {
   );
 }
 
-function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
+function AuthForm({
+  buttonLabel,
+  description,
+  linkLabel,
+  linkTo,
+  mode = "login",
+  onSubmit,
+}) {
+  const navigate = useNavigate();
+  const nicknameInputRef = useRef(null);
+  const passwordInputRef = useRef(null);
   const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -57,6 +69,8 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
   const helperMessage = errorMessage || guideMessage;
   const helperMessageColor = errorMessage ? "text-black" : "text-[#d4d4d4]";
   const helperMessageAnimation = errorMessage ? "animate-shake-error" : "";
+  const passwordAutoComplete =
+    mode === "signup" ? "new-password" : "current-password";
 
   const showAuthError = (message, field) => {
     setErrorMessage(message);
@@ -145,6 +159,30 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
     }
   };
 
+  const clearAuthFields = () => {
+    if (nicknameInputRef.current) {
+      nicknameInputRef.current.value = "";
+    }
+
+    if (passwordInputRef.current) {
+      passwordInputRef.current.value = "";
+    }
+
+    setNickname("");
+    setPassword("");
+    setErrorMessage("");
+    setErrorField("");
+    setFocusedField("");
+    setIsPasswordVisible(false);
+  };
+
+  const handleAuthRouteChange = () => {
+    clearAuthFields();
+    window.requestAnimationFrame(() => {
+      navigate(linkTo);
+    });
+  };
+
   return (
     <main className="flex min-h-[620px] items-center justify-center p-6">
       <section className="flex w-full max-w-[380px] flex-col items-center">
@@ -156,49 +194,52 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
           <TypingText key={description} text={description} />
         </p>
 
-        <form className="mt-10 w-full" onSubmit={handleSubmit}>
+        <form autoComplete="on" className="mt-10 w-full" onSubmit={handleSubmit}>
           <div className="overflow-hidden rounded-md border border-gray-300">
             <input
+              autoComplete="username"
               className={[
                 "h-10 w-full border-b px-4 text-base outline-none transition-colors placeholder:text-base placeholder:text-gray-300 focus:border-black",
                 errorField === "nickname"
                   ? "border-neutral-500"
                   : "border-gray-300",
               ].join(" ")}
+              name="username"
               onChange={handleNicknameChange}
               onFocus={handleNicknameFocus}
               placeholder="닉네임을 입력하세요"
+              ref={nicknameInputRef}
               type="text"
               value={nickname}
             />
             <div className="relative">
               <input
+                autoComplete={passwordAutoComplete}
                 className={[
                   "h-10 w-full border-b px-4 pr-12 text-base outline-none transition-colors placeholder:text-base placeholder:text-gray-300 focus:border-black",
                   errorField === "password"
                     ? "border-neutral-500"
                     : "border-transparent",
                 ].join(" ")}
+                name="password"
                 onChange={handlePasswordChange}
                 onFocus={handlePasswordFocus}
                 placeholder="비밀번호를 입력하세요"
+                ref={passwordInputRef}
                 type={isPasswordVisible ? "text" : "password"}
                 value={password}
               />
-              <button
-                aria-label={
-                  isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"
-                }
-                className="absolute right-3 top-1/2 flex h-5 w-5 -translate-y-1/2 cursor-pointer items-center justify-center text-black transition-colors hover:text-[#d4d4d4]"
+              <IconButton
+                ariaLabel={isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
                 onClick={handleTogglePasswordVisible}
-                type="button"
               >
                 {isPasswordVisible ? (
                   <EyeIcon className="h-4 w-4" />
                 ) : (
                   <EyeSlashIcon className="h-4 w-4" />
                 )}
-              </button>
+              </IconButton>
             </div>
           </div>
 
@@ -213,21 +254,24 @@ function AuthForm({ buttonLabel, description, linkLabel, linkTo, onSubmit }) {
             {helperMessage}
           </p>
 
-          <button
-            className="mt-6 h-10 w-full cursor-pointer rounded-md border border-gray-300 text-sm font-normal text-black transition-colors hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-white disabled:hover:text-gray-300"
+          <Button
+            className="mt-6"
             disabled={isSubmitting}
+            size="full"
             type="submit"
           >
             {isSubmitting ? "처리 중..." : buttonLabel}
-          </button>
+          </Button>
         </form>
 
-        <Link
+        <button
           className="mt-3 self-end text-xs text-gray-400 no-underline transition-colors hover:text-black"
-          to={linkTo}
+          onClick={handleAuthRouteChange}
+          onPointerDown={clearAuthFields}
+          type="button"
         >
           {linkLabel}
-        </Link>
+        </button>
       </section>
     </main>
   );

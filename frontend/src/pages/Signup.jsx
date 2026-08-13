@@ -36,6 +36,7 @@ function Signup({ onSignupSuccess }) {
         description={description}
         linkLabel="계정이 이미 있으신가요?"
         linkTo="/login"
+        mode="signup"
         onSubmit={handleSignupSubmit}
       />
 
