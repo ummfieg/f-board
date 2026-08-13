@@ -3,11 +3,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import { createPost, getPost, updatePost } from "../api/posts";
 import { recommendFont } from "../api/recommendations";
 import FontInfoPopover from "../components/FontInfoPopover";
-import { ArrowLongLeftIcon } from "../components/icons";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
-import IconButton from "../components/ui/IconButton";
 import {
   createRecommendationFromPost,
   createRecommendationFromResponse,
@@ -275,14 +273,14 @@ function Write({ onAuthExpired = () => {} }) {
         ].join(" ")}
       >
         {isEditMode ? (
-          <IconButton
-            aria-label="이전으로"
+          <Button
             className="mb-16"
-            onClick={() => navigate(-1)}
-            size="back"
+            onClick={() => navigate(`/posts/${postId}`)}
+            size="xs"
+            variant="text"
           >
-            <ArrowLongLeftIcon className="h-6 w-8" />
-          </IconButton>
+            게시글로
+          </Button>
         ) : null}
 
         {isLoadingPost ? (

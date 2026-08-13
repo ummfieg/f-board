@@ -8,14 +8,16 @@ import {
 import { deletePost, getPost } from "../api/posts";
 import FontInfoPopover from "../components/FontInfoPopover";
 import {
-  ArrowLongLeftIcon,
+  ArrowUpIcon,
   ChatBubbleLeftEllipsisIcon,
   PencilSquareIcon,
   XMarkIcon,
 } from "../components/icons";
+import FloatingActionStack from "../components/FloatingActionStack";
 import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
 import IconButton from "../components/ui/IconButton";
+import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle } from "../utils/webFont";
 
 const fallbackFontReason =
@@ -131,6 +133,7 @@ function PostDetail({ user }) {
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const shouldShowScrollTopButton = useScrollThreshold();
 
   const handleCommentContentChange = (event) => {
     setCommentContent(event.target.value);
@@ -204,6 +207,13 @@ function PostDetail({ user }) {
     navigate("/login");
   };
 
+  const handleScrollTopClick = () => {
+    window.scrollTo({
+      behavior: "smooth",
+      top: 0,
+    });
+  };
+
   useEffect(() => {
     let isMounted = true;
 
@@ -261,14 +271,15 @@ function PostDetail({ user }) {
   return (
     <main className="p-6">
       <section className="mx-auto w-full max-w-[720px] pt-8 pb-12">
-        <IconButton
-          aria-label="이전으로"
-          className="mb-16"
-          onClick={() => navigate(-1)}
-          size="back"
+        <Button
+          as={Link}
+          className="mb-16 inline-flex no-underline"
+          size="xs"
+          to="/"
+          variant="text"
         >
-          <ArrowLongLeftIcon className="h-6 w-8" />
-        </IconButton>
+          목록으로
+        </Button>
 
         <div className="grid min-h-[148px] grid-cols-[1fr_auto] items-start gap-5 overflow-visible pr-2">
           <div className="ml-auto flex h-full w-[68%] flex-col">
@@ -353,14 +364,14 @@ function PostDetail({ user }) {
               placeholder="댓글을 입력하세요."
               value={commentContent}
             />
-            <button
-              className="cursor-pointer px-2 text-xs text-black transition-colors hover:text-[#d4d4d4] disabled:cursor-not-allowed disabled:text-[#d4d4d4]"
+            <Button
               disabled={isSubmittingComment}
               onClick={handleCreateComment}
-              type="button"
+              size="xs"
+              variant="text"
             >
               {isSubmittingComment ? "등록 중" : "등록"}
-            </button>
+            </Button>
           </div>
 
           <p className="mt-2 min-h-5 text-left text-sm text-neutral-600">
@@ -412,19 +423,20 @@ function PostDetail({ user }) {
           )}
         </section>
 
-        <div className="mt-16 flex justify-end">
-          <Link
-            className="rounded-md border border-gray-300 px-5 py-2 text-sm text-black no-underline transition-colors hover:bg-black hover:text-white"
-            to="/"
-          >
-            목록으로
-          </Link>
-        </div>
-
         <p className="sr-only">현재 게시글 ID는 {postId}입니다.</p>
       </section>
 
-      <div className="fixed bottom-8 z-30 [right:max(1.5rem,calc((100vw-1024px)/2+1.5rem))]">
+      <FloatingActionStack>
+        {shouldShowScrollTopButton ? (
+          <IconButton
+            ariaLabel="상단으로"
+            onClick={handleScrollTopClick}
+            size="floating"
+            variant="floating"
+          >
+            <ArrowUpIcon className="h-5 w-5" />
+          </IconButton>
+        ) : null}
         <IconButton
           ariaLabel="글쓰기"
           onClick={handleWriteClick}
@@ -433,7 +445,7 @@ function PostDetail({ user }) {
         >
           <PencilSquareIcon className="h-5 w-5" />
         </IconButton>
-      </div>
+      </FloatingActionStack>
 
       {isDeleteDialogOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-6 backdrop-blur-[1px]">

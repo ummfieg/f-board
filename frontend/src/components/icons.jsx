@@ -14,18 +14,6 @@ function IconBase({ children, className = "h-5 w-5" }) {
   );
 }
 
-export function ArrowLongLeftIcon({ className }) {
-  return (
-    <IconBase className={className}>
-      <path
-        d="M6.75 15.75 3 12m0 0 3.75-3.75M3 12h18"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </IconBase>
-  );
-}
-
 export function XMarkIcon({ className }) {
   return (
     <IconBase className={className}>
@@ -144,6 +132,18 @@ export function ArchiveBoxIcon({ className }) {
     <IconBase className={className}>
       <path
         d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </IconBase>
+  );
+}
+
+export function ArrowUpIcon({ className }) {
+  return (
+    <IconBase className={className}>
+      <path
+        d="m4.5 15.75 7.5-7.5 7.5 7.5M12 8.25V21"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
