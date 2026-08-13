@@ -23,6 +23,7 @@ function Login({ onLoginSuccess }) {
       description={description}
       linkLabel="아직 계정이 없으신가요?"
       linkTo="/signup"
+      mode="login"
       onSubmit={handleLoginSubmit}
     />
   );
