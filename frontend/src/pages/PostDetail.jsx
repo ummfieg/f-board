@@ -18,6 +18,7 @@ import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
 import IconButton from "../components/ui/IconButton";
 import TextActionButton from "../components/ui/TextActionButton";
+import Textarea from "../components/ui/Textarea";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle } from "../utils/webFont";
 
@@ -355,10 +356,11 @@ function PostDetail({ user }) {
           </div>
 
           <div className="mt-3 flex items-center gap-3">
-            <textarea
-              className="h-20 flex-1 resize-none rounded-md border border-gray-300 px-4 py-3 text-sm leading-relaxed outline-none transition-colors placeholder:text-sm placeholder:text-gray-300 focus:border-black"
+            <Textarea
+              className="flex-1"
               onChange={handleCommentContentChange}
               placeholder="댓글을 입력하세요."
+              size="comment"
               value={commentContent}
             />
             <Button

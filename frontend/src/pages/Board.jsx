@@ -3,15 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpIcon,
   ChatBubbleOvalLeftIcon,
-  MagnifyingGlassIcon,
   PencilSquareIcon,
   ShareIcon,
-  XMarkIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
 import PaginationButton from "../components/ui/PaginationButton";
 import PreservedText from "../components/PreservedText";
+import SearchInput from "../components/ui/SearchInput";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
@@ -283,28 +282,14 @@ function Board({ user }) {
         <p className="mb-5 text-center text-base font-normal text-black">
           글에 어울리는 폰트를 검색하고 기록해보세요
         </p>
-        <label className="relative w-full max-w-[360px]">
-          <span className="sr-only">게시글 검색</span>
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            className="h-10 w-full rounded-md border border-gray-300 pl-10 pr-9 text-sm outline-none transition-colors placeholder:text-gray-300 focus:border-black"
-            onChange={handleSearchChange}
-            placeholder="제목, 폰트 이름 등 검색어를 입력하세요"
-            type="text"
-            value={searchQuery}
-          />
-          {searchQuery ? (
-            <IconButton
-              ariaLabel="검색어 지우기"
-              className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60"
-              onClick={handleClearSearch}
-              size="xs"
-              variant="subtle"
-            >
-              <XMarkIcon className="h-3.5 w-3.5" />
-            </IconButton>
-          ) : null}
-        </label>
+        <SearchInput
+          ariaLabel="게시글 검색"
+          className="w-full max-w-[360px]"
+          onChange={handleSearchChange}
+          onClear={handleClearSearch}
+          placeholder="제목, 폰트 이름 등 검색어를 입력하세요"
+          value={searchQuery}
+        />
       </div>
 
       {isLoadingPosts ? (

@@ -7,6 +7,8 @@ import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
 import TabButton from "../components/ui/TabButton";
+import Textarea from "../components/ui/Textarea";
+import TextInput from "../components/ui/TextInput";
 import {
   createRecommendationFromPost,
   createRecommendationFromResponse,
@@ -340,13 +342,14 @@ function Write({ onAuthExpired = () => {} }) {
           </div>
         </div>
 
-        <input
-          className="mt-20 w-full border-b border-black px-1 py-2 text-base outline-none transition-colors placeholder:text-gray-300"
+        <TextInput
+          className="mt-20"
           maxLength={100}
           onChange={handleTitleChange}
           placeholder="제목을 입력하세요."
           type="text"
           value={title}
+          variant="underline"
         />
 
         <div
@@ -389,12 +392,13 @@ function Write({ onAuthExpired = () => {} }) {
         <div className="min-h-[380px]">
           {activeTab === "write" ? (
             <>
-              <textarea
-                className="thin-transparent-scrollbar h-52 w-full resize-none overflow-y-auto rounded-md border border-gray-300 px-5 py-4 text-base leading-relaxed outline-none transition-colors placeholder:text-gray-300 focus:border-black"
+              <Textarea
                 maxLength={1500}
                 onChange={handleContentChange}
                 placeholder="게시글 내용을 입력하세요. 1500자 이내"
+                size="post"
                 value={content}
+                withThinScrollbar
               />
               <div className="mt-3 flex justify-end">
                 <Button
