@@ -11,6 +11,7 @@ import IconButton from "../components/ui/IconButton";
 import PaginationButton from "../components/ui/PaginationButton";
 import PreservedText from "../components/PreservedText";
 import SearchInput from "../components/ui/SearchInput";
+import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
@@ -315,17 +316,11 @@ function Board({ user }) {
       </div>
 
       {isLoadingPosts ? (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            게시글을 불러오는 중이에요.
-          </p>
-        </section>
+        <StateSection minHeight="sm">게시글을 불러오는 중이에요.</StateSection>
       ) : postsErrorMessage ? (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            {postsErrorMessage}
-          </p>
-        </section>
+        <StateSection minHeight="sm" tone="error">
+          {postsErrorMessage}
+        </StateSection>
       ) : hasVisiblePosts ? (
         <>
           <section className="mt-20 grid min-h-[820px] grid-cols-3 content-start gap-x-6 gap-y-10">
@@ -419,13 +414,11 @@ function Board({ user }) {
           </nav>
         </>
       ) : (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            {emptyMessage}
-            <br />
-            첫 문장을 입력하고 어울리는 폰트를 찾아보세요.
-          </p>
-        </section>
+        <StateSection minHeight="sm">
+          {emptyMessage}
+          <br />
+          첫 문장을 입력하고 어울리는 폰트를 찾아보세요.
+        </StateSection>
       )}
 
       <FloatingActionStack>

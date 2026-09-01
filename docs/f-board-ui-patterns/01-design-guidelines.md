@@ -86,6 +86,25 @@
 - `empty`: 사용자가 다음 행동을 떠올릴 수 있는 문장을 제공한다.
 - `error`: API 실패 문구는 화면 안에 남겨 사용자가 원인을 놓치지 않게 한다.
 
+### 상태 화면 토큰
+
+상태 UI는 크게 두 단위로 나눈다.
+
+| 컴포넌트 | 용도 | 기본 스타일 |
+| --- | --- | --- |
+| `StateSection` | 페이지/섹션 전체가 loading, empty, error 상태일 때 | 중앙 정렬, `text-sm`, muted color |
+| `StateMessage` | 리스트 안의 empty/loading 문구나 작은 안내 문구 | `text-sm`, muted color |
+
+`StateSection`의 높이는 화면 맥락에 따라 size token으로 선택한다.
+
+| 토큰 | 높이 | 사용 기준 |
+| --- | --- | --- |
+| `sm` | `min-h-[360px]` | 목록 페이지의 검색 결과, empty, loading |
+| `md` | `min-h-[420px]` | 작성/수정 화면 내부 loading |
+| `lg` | `min-h-[520px]` | 상세 페이지처럼 단독 화면을 대체하는 loading/error |
+
+상태 문구 색은 기본적으로 `#d4d4d4`를 사용한다. 단, 실제 오류 원인을 강조해야 하는 폼/요청 에러는 `neutral-600` 이상을 사용한다.
+
 ## 피해야 할 방식
 
 - 한 화면에서만 임시로 `!text-sm`처럼 강제 클래스를 붙이지 않는다.

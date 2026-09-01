@@ -6,6 +6,7 @@ import FontInfoPopover from "../components/FontInfoPopover";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
+import StateSection from "../components/ui/StateSection";
 import TabButton from "../components/ui/TabButton";
 import Textarea from "../components/ui/Textarea";
 import TextInput from "../components/ui/TextInput";
@@ -296,9 +297,7 @@ function Write({ onAuthExpired = () => {} }) {
         </Button>
 
         {isEditMode && isLoadingPost ? (
-          <div className="flex min-h-[420px] items-center justify-center text-sm text-[#d4d4d4]">
-            게시글을 불러오는 중...
-          </div>
+          <StateSection as="div">게시글을 불러오는 중...</StateSection>
         ) : (
           <>
             <div className="min-h-[148px]">

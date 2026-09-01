@@ -35,6 +35,8 @@
 | `TextActionButton` | 배경 없는 텍스트 액션 | 수정, 삭제, 로그아웃, 인증 전환, 모달 취소 |
 | `PaginationButton` | 목록 페이지네이션 | 이전, 다음, 페이지 번호 |
 | `TabButton` | 작성 화면 탭 전환 | Write, Preview |
+| `StateSection` | 페이지/섹션 단위 상태 화면 | 목록 loading/empty/error, 상세 loading/error, 작성 loading |
+| `StateMessage` | 작은 영역의 상태 문구 | 댓글 empty, 마이페이지 목록 loading/empty |
 
 ## 버튼 분리 이유
 
@@ -95,7 +97,7 @@
 
 ### 상태 화면
 
-후보:
+적용 완료:
 
 - 목록 loading
 - 목록 empty
@@ -103,7 +105,7 @@
 - 작성 loading
 - 마이페이지 empty/loading
 
-분리 방향:
+분리 결과:
 
 - `StateMessage`
 - `StateSection`
@@ -113,6 +115,12 @@
 
 - loading, empty, error 문구와 위치가 반복된다.
 - 스켈레톤 도입 시 각 페이지에 임시 레이아웃이 늘어나는 것을 막을 수 있다.
+
+분리 기준:
+
+- 화면 한가운데 넓게 보여야 하는 상태는 `StateSection`을 사용한다.
+- 리스트 내부에 한 줄로 들어가는 상태는 `StateMessage`를 사용한다.
+- 상태 문구 자체는 공통 컴포넌트가 관리하고, 페이지는 어떤 메시지를 보여줄지만 결정한다.
 
 ### 확인 모달
 

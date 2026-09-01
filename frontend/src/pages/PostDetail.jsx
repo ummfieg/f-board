@@ -18,6 +18,8 @@ import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import IconButton from "../components/ui/IconButton";
+import StateMessage from "../components/ui/StateMessage";
+import StateSection from "../components/ui/StateSection";
 import TextActionButton from "../components/ui/TextActionButton";
 import Textarea from "../components/ui/Textarea";
 import useScrollThreshold from "../hooks/useScrollThreshold";
@@ -270,9 +272,7 @@ function PostDetail({ user }) {
   if (isLoadingPost) {
     return (
       <main className="p-6">
-        <section className="flex min-h-[520px] items-center justify-center text-center">
-          <p className="text-sm text-[#d4d4d4]">게시글을 불러오는 중이에요.</p>
-        </section>
+        <StateSection minHeight="lg">게시글을 불러오는 중이에요.</StateSection>
       </main>
     );
   }
@@ -280,11 +280,9 @@ function PostDetail({ user }) {
   if (postErrorMessage || !postDetail) {
     return (
       <main className="p-6">
-        <section className="flex min-h-[520px] items-center justify-center text-center">
-          <p className="text-sm text-[#d4d4d4]">
-            {postErrorMessage || "게시글을 찾을 수 없습니다."}
-          </p>
-        </section>
+        <StateSection minHeight="lg" tone="error">
+          {postErrorMessage || "게시글을 찾을 수 없습니다."}
+        </StateSection>
       </main>
     );
   }
@@ -445,9 +443,9 @@ function PostDetail({ user }) {
               ))}
             </ul>
           ) : (
-            <p className="mt-8 text-center text-sm text-[#d4d4d4]">
+            <StateMessage className="mt-8 text-center">
               첫 댓글을 달아보세요!
-            </p>
+            </StateMessage>
           )}
         </section>
 
