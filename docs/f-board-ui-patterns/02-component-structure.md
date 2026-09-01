@@ -40,6 +40,8 @@
 | `PostCard` | 목록 게시글 카드 | 게시글 메타, 제목, 폰트 미리보기, 댓글 수 |
 | `CommentSection` | 상세 페이지 댓글 영역 | 댓글 입력, 댓글 목록, 삭제 확인 |
 | `CommentItem` | 댓글 단일 행 | 닉네임, 내용, 작성일, 삭제 버튼 |
+| `MyPageAccordionSection` | 마이페이지 아코디언 섹션 | 내가 등록한 게시물, 내가 사용한 폰트 |
+| `MyPagePostLink` | 마이페이지 게시글 링크 행 | 게시글 링크와 bullet 표시 |
 
 ## 버튼 분리 이유
 
@@ -213,6 +215,32 @@
 - `CommentSection`은 댓글 입력폼, 목록, empty 상태, 댓글 삭제 모달 배치를 담당한다.
 - `CommentItem`은 댓글 한 줄의 렌더링과 작성자 본인에게만 삭제 버튼을 노출하는 UI 규칙을 담당한다.
 - 댓글 API 호출 자체는 아직 페이지에 남긴다. 댓글 수정, 페이지네이션, optimistic update가 추가되면 별도 hook 분리를 검토한다.
+
+### 마이페이지 아코디언
+
+적용 완료:
+
+- 내가 등록한 게시물 섹션
+- 내가 사용한 폰트 섹션
+- 아코디언 내부 게시글 링크 행
+
+분리 결과:
+
+- `MyPageAccordionSection`
+- `MyPagePostLink`
+
+분리 이유:
+
+- `details`, `summary`, loading, empty, scroll list 구조가 마이페이지 안에서 반복된다.
+- 각 섹션의 데이터는 다르지만 아코디언 제목, 아이콘, 상태 문구, 리스트 박스의 시각 규칙은 같다.
+- 게시글 링크 행의 bullet, hover, spacing 규칙이 두 섹션에서 반복된다.
+
+분리 기준:
+
+- `MyPage.jsx`는 사용자 정보, 로그아웃, 마이페이지 데이터 로딩 상태를 소유한다.
+- `MyPageAccordionSection`은 아코디언 껍데기와 loading/empty 상태 배치를 담당한다.
+- `MyPagePostLink`는 마이페이지 안에서 게시글로 이동하는 링크의 시각 규칙을 담당한다.
+- 사용한 폰트 그룹의 내부 데이터 매핑은 아직 `MyPage.jsx`에 남긴다. 폰트 그룹 표시가 다른 화면에서도 반복되면 별도 컴포넌트로 분리한다.
 
 ## 폴더 기준
 
