@@ -1,15 +1,14 @@
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpIcon,
-  ChatBubbleOvalLeftIcon,
   PencilSquareIcon,
   ShareIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
 import PaginationButton from "../components/ui/PaginationButton";
-import PreservedText from "../components/PreservedText";
+import PostCard from "../components/PostCard";
 import SearchInput from "../components/ui/SearchInput";
 import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
@@ -49,6 +48,7 @@ function createBoardPostCardData(post) {
   return {
     id: post.id,
     date: formatPostDate(post.created_at),
+    dateTime: post.created_at ?? "",
     fontName,
     title: post.title,
     nickname: post.user?.nickname ?? post.nickname ?? "작성자",
@@ -325,55 +325,11 @@ function Board({ user }) {
         <>
           <section className="mt-20 grid min-h-[820px] grid-cols-3 content-start gap-x-6 gap-y-10">
             {posts.map((post) => (
-              <article
+              <PostCard
+                boardPath={currentBoardPath}
                 key={post.id}
-                className="min-w-0 rounded-md shadow-[0_0_12px_rgba(15,23,42,0.06)] transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_0_18px_rgba(15,23,42,0.1)]"
-              >
-                <Link
-                  className="block cursor-pointer p-4"
-                  state={{ boardPath: currentBoardPath }}
-                  to={`/posts/${post.id}`}
-                >
-                  <div className="flex min-w-0 items-center gap-2 text-[13px] text-[#d4d4d4]">
-                    <time className="shrink-0" dateTime="2026-03-16">
-                      {post.date}
-                    </time>
-                    <span aria-hidden="true" className="shrink-0">
-                      •
-                    </span>
-                    <span className="max-w-[120px] truncate rounded-full border border-gray-200 bg-[#F8F9FA] px-2 py-0.5 text-xs font-medium text-black">
-                      {post.fontName}
-                    </span>
-                    {post.hasKnownWebFontInfo && !post.hasWebFont ? (
-                      <span className="shrink-0 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-[#d4d4d4]">
-                        웹폰트 없음
-                      </span>
-                    ) : null}
-                  </div>
-
-                  <h2 className="line-clamp-2 mt-3 min-h-[40px] break-words text-base font-bold leading-tight text-black">
-                    {post.title}
-                  </h2>
-
-                  <div className="mt-3 h-24 overflow-hidden rounded-md border border-gray-200 px-4 py-3">
-                    <PreservedText
-                      className="text-[20px] leading-relaxed text-black"
-                      style={post.previewFontStyle}
-                      text={post.previewText}
-                    />
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-between gap-3 text-xs text-black">
-                    <p className="min-w-0 truncate font-semibold">
-                      {post.nickname}
-                    </p>
-                    <span className="flex shrink-0 items-center gap-1 text-[#6b7280]">
-                      <ChatBubbleOvalLeftIcon className="h-4 w-4" />
-                      {post.commentCount}
-                    </span>
-                  </div>
-                </Link>
-              </article>
+                post={post}
+              />
             ))}
           </section>
 
