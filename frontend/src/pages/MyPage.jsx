@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getMyBoard } from "../api/auth";
 import { ArchiveBoxIcon, HandRaisedIcon } from "../components/icons";
+import StateMessage from "../components/ui/StateMessage";
+import TextActionButton from "../components/ui/TextActionButton";
 
 function createMyPostItem(post) {
   return {
@@ -94,14 +96,14 @@ function MyPage({ onLogout, user }) {
           <HandRaisedIcon className="h-5 w-5" />
         </p>
 
-        <button
-          className="mt-2 cursor-pointer !text-sm leading-none text-[#d4d4d4] transition-colors hover:text-black disabled:cursor-not-allowed disabled:hover:text-[#d4d4d4]"
+        <TextActionButton
+          className="mt-2"
           disabled={isLoggingOut}
           onClick={handleLogoutClick}
-          type="button"
+          variant="subtle"
         >
           {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
-        </button>
+        </TextActionButton>
         <p className="mt-2 min-h-5 text-center text-sm text-neutral-600">
           {logoutMessage}
         </p>
@@ -121,9 +123,9 @@ function MyPage({ onLogout, user }) {
             </summary>
             <ul className="thin-transparent-scrollbar max-h-[360px] overflow-y-auto border-t border-gray-200 px-4 py-3">
               {isLoadingMyBoard ? (
-                <li className="py-1.5 text-sm text-[#d4d4d4]">
+                <StateMessage as="li" className="py-1.5">
                   게시물을 불러오는 중...
-                </li>
+                </StateMessage>
               ) : hasMyPosts ? (
                 myPosts.map((post) => (
                   <li key={post.id}>
@@ -137,9 +139,9 @@ function MyPage({ onLogout, user }) {
                   </li>
                 ))
               ) : (
-                <li className="py-1.5 text-sm text-[#d4d4d4]">
+                <StateMessage as="li" className="py-1.5">
                   아직 등록한 게시물이 없어요.
-                </li>
+                </StateMessage>
               )}
             </ul>
           </details>
@@ -160,9 +162,9 @@ function MyPage({ onLogout, user }) {
             </summary>
             <ul className="thin-transparent-scrollbar max-h-[320px] overflow-y-auto border-t border-gray-200 px-4 py-3">
               {isLoadingMyBoard ? (
-                <li className="py-1.5 text-sm text-[#d4d4d4]">
+                <StateMessage as="li" className="py-1.5">
                   폰트 기록을 불러오는 중...
-                </li>
+                </StateMessage>
               ) : hasUsedFonts ? (
                 usedFonts.map((fontGroup) => (
                   <li className="py-1.5 text-sm text-black" key={fontGroup.fontName}>
@@ -188,16 +190,16 @@ function MyPage({ onLogout, user }) {
                   </li>
                 ))
               ) : (
-                <li className="py-1.5 text-sm text-[#d4d4d4]">
+                <StateMessage as="li" className="py-1.5">
                   아직 사용한 폰트가 없어요.
-                </li>
+                </StateMessage>
               )}
             </ul>
           </details>
         </div>
-        <p className="mt-2 min-h-5 text-center text-sm text-[#d4d4d4]">
+        <StateMessage className="mt-2 min-h-5 text-center" tone="error">
           {myBoardErrorMessage}
-        </p>
+        </StateMessage>
       </section>
     </main>
   );

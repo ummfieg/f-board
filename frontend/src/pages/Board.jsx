@@ -1,16 +1,17 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpIcon,
   ChatBubbleOvalLeftIcon,
-  MagnifyingGlassIcon,
   PencilSquareIcon,
   ShareIcon,
-  XMarkIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
+import PaginationButton from "../components/ui/PaginationButton";
 import PreservedText from "../components/PreservedText";
+import SearchInput from "../components/ui/SearchInput";
+import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
@@ -61,9 +62,11 @@ function createBoardPostCardData(post) {
 
 function Board({ user }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = Number(searchParams.get("page"));
+  const currentPage = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+  const searchQuery = searchParams.get("search") ?? "";
   const [posts, setPosts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postsErrorMessage, setPostsErrorMessage] = useState("");
@@ -80,24 +83,44 @@ function Board({ user }) {
   const emptyMessage = searchQuery
     ? "검색 결과가 없어요."
     : "아직 기록된 폰트 보드가 없어요.";
+  const currentBoardPath = `/${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+
+  const updateBoardSearchParams = ({ page = currentPage, search = searchQuery }, options = {}) => {
+    const nextSearchParams = new URLSearchParams();
+    const normalizedSearch = search.trim();
+
+    if (page > 1) {
+      nextSearchParams.set("page", String(page));
+    }
+
+    if (normalizedSearch) {
+      nextSearchParams.set("search", normalizedSearch);
+    }
+
+    setSearchParams(nextSearchParams, options);
+  };
 
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    setCurrentPage(1);
+    updateBoardSearchParams(
+      {
+        page: 1,
+        search: event.target.value,
+      },
+      { replace: true },
+    );
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
 
   const handleClearSearch = () => {
-    setSearchQuery("");
-    setCurrentPage(1);
+    updateBoardSearchParams({ page: 1, search: "" }, { replace: true });
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
 
   const handlePreviousPage = () => {
     if (!isFirstPage) {
-      setCurrentPage((pageNumber) => pageNumber - 1);
+      updateBoardSearchParams({ page: currentPage - 1 });
       setIsLoadingPosts(true);
       setPostsErrorMessage("");
     }
@@ -105,14 +128,14 @@ function Board({ user }) {
 
   const handleNextPage = () => {
     if (!isLastPage) {
-      setCurrentPage((pageNumber) => pageNumber + 1);
+      updateBoardSearchParams({ page: currentPage + 1 });
       setIsLoadingPosts(true);
       setPostsErrorMessage("");
     }
   };
 
   const handleSelectPage = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    updateBoardSearchParams({ page: pageNumber });
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
@@ -195,7 +218,7 @@ function Board({ user }) {
 
   const handleWriteClick = () => {
     if (user) {
-      navigate("/write");
+      navigate("/write", { state: { boardPath: currentBoardPath } });
       return;
     }
 
@@ -282,42 +305,22 @@ function Board({ user }) {
         <p className="mb-5 text-center text-base font-normal text-black">
           글에 어울리는 폰트를 검색하고 기록해보세요
         </p>
-        <label className="relative w-full max-w-[360px]">
-          <span className="sr-only">게시글 검색</span>
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            className="h-10 w-full rounded-md border border-gray-300 pl-10 pr-9 text-sm outline-none transition-colors placeholder:text-gray-300 focus:border-black"
-            onChange={handleSearchChange}
-            placeholder="제목, 폰트 이름 등 검색어를 입력하세요"
-            type="text"
-            value={searchQuery}
-          />
-          {searchQuery ? (
-            <IconButton
-              ariaLabel="검색어 지우기"
-              className="absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-60"
-              onClick={handleClearSearch}
-              size="xs"
-              variant="subtle"
-            >
-              <XMarkIcon className="h-3.5 w-3.5" />
-            </IconButton>
-          ) : null}
-        </label>
+        <SearchInput
+          ariaLabel="게시글 검색"
+          className="w-full max-w-[360px]"
+          onChange={handleSearchChange}
+          onClear={handleClearSearch}
+          placeholder="제목, 폰트 이름 등 검색어를 입력하세요"
+          value={searchQuery}
+        />
       </div>
 
       {isLoadingPosts ? (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            게시글을 불러오는 중이에요.
-          </p>
-        </section>
+        <StateSection minHeight="sm">게시글을 불러오는 중이에요.</StateSection>
       ) : postsErrorMessage ? (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            {postsErrorMessage}
-          </p>
-        </section>
+        <StateSection minHeight="sm" tone="error">
+          {postsErrorMessage}
+        </StateSection>
       ) : hasVisiblePosts ? (
         <>
           <section className="mt-20 grid min-h-[820px] grid-cols-3 content-start gap-x-6 gap-y-10">
@@ -328,6 +331,7 @@ function Board({ user }) {
               >
                 <Link
                   className="block cursor-pointer p-4"
+                  state={{ boardPath: currentBoardPath }}
                   to={`/posts/${post.id}`}
                 >
                   <div className="flex min-w-0 items-center gap-2 text-[13px] text-[#d4d4d4]">
@@ -375,67 +379,46 @@ function Board({ user }) {
 
           <nav
             aria-label="게시글 페이지"
-            className="mt-12 flex items-center justify-center gap-4"
+            className="mt-12 mb-16 flex items-center justify-center gap-4"
           >
-            <button
-              className={[
-                "text-sm transition-colors",
-                isFirstPage
-                  ? "cursor-not-allowed text-[#d4d4d4]"
-                  : "cursor-pointer text-black hover:text-[#d4d4d4]",
-              ].join(" ")}
+            <PaginationButton
               disabled={isFirstPage}
               onClick={handlePreviousPage}
-              type="button"
+              variant="edge"
             >
               이전
-            </button>
+            </PaginationButton>
             <div className="flex items-center gap-2">
               {pageNumbers.map((pageNumber) => {
                 const isCurrentPage = pageNumber === currentPage;
 
                 return (
-                  <button
+                  <PaginationButton
                     aria-current={isCurrentPage ? "page" : undefined}
-                    className={[
-                      "h-8 min-w-8 rounded-md border px-2 text-sm transition-colors",
-                      isCurrentPage
-                        ? "cursor-default border-black bg-white text-black"
-                        : "cursor-pointer border-transparent text-[#d4d4d4] hover:bg-[#F8F9FA] hover:text-black",
-                    ].join(" ")}
-                    disabled={isCurrentPage}
+                    isActive={isCurrentPage}
                     key={pageNumber}
                     onClick={() => handleSelectPage(pageNumber)}
-                    type="button"
                   >
                     {pageNumber}
-                  </button>
+                  </PaginationButton>
                 );
               })}
             </div>
-            <button
-              className={[
-                "text-sm transition-colors",
-                isLastPage
-                  ? "cursor-not-allowed text-[#d4d4d4]"
-                  : "cursor-pointer text-black hover:text-[#d4d4d4]",
-              ].join(" ")}
+            <PaginationButton
               disabled={isLastPage}
               onClick={handleNextPage}
-              type="button"
+              variant="edge"
             >
               다음
-            </button>
+            </PaginationButton>
           </nav>
         </>
       ) : (
-        <section className="flex min-h-[360px] items-center justify-center text-center">
-          <p className="text-sm font-normal text-[#d4d4d4]">
-            {emptyMessage}
-            <br />
-            첫 문장을 입력하고 어울리는 폰트를 찾아보세요.
-          </p>
-        </section>
+        <StateSection minHeight="sm">
+          {emptyMessage}
+          <br />
+          첫 문장을 입력하고 어울리는 폰트를 찾아보세요.
+        </StateSection>
       )}
 
       <FloatingActionStack>

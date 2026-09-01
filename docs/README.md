@@ -8,6 +8,7 @@
 
 - [Full Stack Tech Loadmap](./full-stack-tech-loadmap/README.md)
 - [AI Implementation Roadmap](./ai-implementation/README.md)
+- [f-board UI Patterns](./f-board-ui-patterns/01-design-guidelines.md)
 
 ## Woonyong 개인 문서
 
@@ -19,6 +20,7 @@
 Docs
 ├── full-stack-tech-loadmap
 ├── ai-implementation
+├── f-board-ui-patterns
 └── woonyong
     └── ai-dev-workspace
         ├── RepoPilot MVP 최신 기획
@@ -45,6 +47,11 @@ Docs
 - [Agent Orchestration](./ai-implementation/04-agent-orchestration.md)
 - [Memory, Evaluation, Observability](./ai-implementation/05-memory-evaluation-observability.md)
 - [Python Architecture](./ai-implementation/06-python-architecture.md)
+
+### f-board UI Patterns
+
+- [Design Guidelines](./f-board-ui-patterns/01-design-guidelines.md)
+- [Component Structure](./f-board-ui-patterns/02-component-structure.md)
 
 ## 개인 문서 링크
 

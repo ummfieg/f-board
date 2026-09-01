@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   createComment,
   deleteComment,
   getComments,
 } from "../api/comments";
 import { deletePost, getPost } from "../api/posts";
-import FontInfoPopover from "../components/FontInfoPopover";
 import {
   ArrowUpIcon,
   ChatBubbleLeftEllipsisIcon,
@@ -14,10 +13,15 @@ import {
   XMarkIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
+import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import IconButton from "../components/ui/IconButton";
+import StateMessage from "../components/ui/StateMessage";
+import StateSection from "../components/ui/StateSection";
 import TextActionButton from "../components/ui/TextActionButton";
+import Textarea from "../components/ui/Textarea";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { createWebFontStyle } from "../utils/webFont";
 
@@ -123,6 +127,7 @@ function transformComment(comment) {
 }
 
 function PostDetail({ user }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const { postId } = useParams();
   const [postDetail, setPostDetail] = useState(null);
@@ -132,9 +137,13 @@ function PostDetail({ user }) {
   const [postErrorMessage, setPostErrorMessage] = useState("");
   const [commentErrorMessage, setCommentErrorMessage] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const shouldShowScrollTopButton = useScrollThreshold();
+  const boardPath = location.state?.boardPath ?? "/";
+  const detailPath = [location.pathname, location.search, location.hash].join("");
 
   const handleCommentContentChange = (event) => {
     setCommentContent(event.target.value);
@@ -159,7 +168,7 @@ function PostDetail({ user }) {
 
     try {
       const commentResponse = await createComment(postId, {
-        content: trimmedContent,
+        content: commentContent,
       });
       setComments((currentComments) => [
         ...currentComments,
@@ -173,14 +182,27 @@ function PostDetail({ user }) {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleRequestDeleteComment = (commentId) => {
+    setDeletingCommentId(commentId);
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deletingCommentId) {
+      return;
+    }
+
+    setIsDeletingComment(true);
+
     try {
-      await deleteComment(commentId);
+      await deleteComment(deletingCommentId);
       setComments((currentComments) =>
-        currentComments.filter((comment) => comment.id !== commentId),
+        currentComments.filter((comment) => comment.id !== deletingCommentId),
       );
+      setDeletingCommentId(null);
     } catch (error) {
       setCommentErrorMessage(error.message);
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -190,7 +212,7 @@ function PostDetail({ user }) {
     try {
       await deletePost(postId);
       setIsDeleteDialogOpen(false);
-      navigate("/");
+      navigate(boardPath);
     } catch (error) {
       setPostErrorMessage(error.message);
       setIsDeleteDialogOpen(false);
@@ -201,7 +223,7 @@ function PostDetail({ user }) {
 
   const handleWriteClick = () => {
     if (user) {
-      navigate("/write");
+      navigate("/write", { state: { boardPath } });
       return;
     }
 
@@ -250,9 +272,7 @@ function PostDetail({ user }) {
   if (isLoadingPost) {
     return (
       <main className="p-6">
-        <section className="flex min-h-[520px] items-center justify-center text-center">
-          <p className="text-sm text-[#d4d4d4]">게시글을 불러오는 중이에요.</p>
-        </section>
+        <StateSection minHeight="lg">게시글을 불러오는 중이에요.</StateSection>
       </main>
     );
   }
@@ -260,11 +280,9 @@ function PostDetail({ user }) {
   if (postErrorMessage || !postDetail) {
     return (
       <main className="p-6">
-        <section className="flex min-h-[520px] items-center justify-center text-center">
-          <p className="text-sm text-[#d4d4d4]">
-            {postErrorMessage || "게시글을 찾을 수 없습니다."}
-          </p>
-        </section>
+        <StateSection minHeight="lg" tone="error">
+          {postErrorMessage || "게시글을 찾을 수 없습니다."}
+        </StateSection>
       </main>
     );
   }
@@ -275,43 +293,17 @@ function PostDetail({ user }) {
         <Button
           as={Link}
           className="mb-16 inline-flex no-underline"
-          size="sm"
-          to="/"
+          size="inline"
+          to={boardPath}
           variant="text"
         >
           목록으로
         </Button>
 
-        <div className="grid min-h-[148px] grid-cols-[1fr_auto] items-start gap-5 overflow-visible pr-2">
-          <div className="ml-auto flex h-full w-[68%] flex-col">
-            <div className="flex min-h-7 flex-wrap items-center gap-2">
-              <FontInfoPopover font={postDetail.font} />
-              {postDetail.font.tags.map((tag) => (
-                <span
-                  className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-black"
-                  key={tag}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-3 flex min-h-20 items-center overflow-visible pr-1">
-              <p className="thin-transparent-scrollbar max-h-20 overflow-y-auto text-left text-sm leading-relaxed text-black">
-                {postDetail.font.reason}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex h-full flex-col">
-            <div className="min-h-7" />
-            <div className="mt-3 flex min-h-20 items-center overflow-visible">
-              <span className="shrink-0 font-['Zodiak'] text-[28pt] font-extrabold italic leading-none text-black">
-                f
-              </span>
-            </div>
-          </div>
-        </div>
+        <FontRecommendationHeader
+          font={postDetail.font}
+          reason={postDetail.font.reason}
+        />
 
         <article className="mt-20">
           <time className="text-xs text-[#d4d4d4]" dateTime={postDetail.dateTime}>
@@ -333,7 +325,14 @@ function PostDetail({ user }) {
             {user?.id === postDetail.authorId ? (
               <div className="flex items-center gap-4">
                 <TextActionButton
-                  onClick={() => navigate(`/posts/${postId}/edit`)}
+                  onClick={() =>
+                    navigate(`/posts/${postId}/edit`, {
+                      state: {
+                        boardPath,
+                        detailPath,
+                      },
+                    })
+                  }
                 >
                   수정
                 </TextActionButton>
@@ -355,10 +354,11 @@ function PostDetail({ user }) {
           </div>
 
           <div className="mt-3 flex items-center gap-3">
-            <textarea
-              className="h-20 flex-1 resize-none rounded-md border border-gray-300 px-4 py-3 text-sm leading-relaxed outline-none transition-colors placeholder:text-sm placeholder:text-gray-300 focus:border-black"
+            <Textarea
+              className="flex-1"
               onChange={handleCommentContentChange}
               placeholder="댓글을 입력하세요."
+              size="comment"
               value={commentContent}
             />
             <Button
@@ -389,9 +389,10 @@ function PostDetail({ user }) {
                   <p className="text-sm font-semibold leading-5 text-black">
                     {comment.nickname}
                   </p>
-                  <p className="min-w-0 break-words text-sm leading-5 text-black">
-                    {comment.content}
-                  </p>
+                  <PreservedText
+                    className="min-w-0 text-sm leading-5 text-black"
+                    text={comment.content}
+                  />
                   <div className="flex h-5 items-center gap-3 self-start leading-none">
                     <time
                       className="whitespace-nowrap text-sm leading-5 text-[#d4d4d4]"
@@ -402,7 +403,7 @@ function PostDetail({ user }) {
                     {user?.id === comment.userId ? (
                       <IconButton
                         ariaLabel="댓글 삭제"
-                        onClick={() => handleDeleteComment(comment.id)}
+                        onClick={() => handleRequestDeleteComment(comment.id)}
                         size="sm"
                         variant="muted"
                       >
@@ -416,9 +417,9 @@ function PostDetail({ user }) {
               ))}
             </ul>
           ) : (
-            <p className="mt-8 text-center text-sm text-[#d4d4d4]">
+            <StateMessage className="mt-8 text-center">
               첫 댓글을 달아보세요!
-            </p>
+            </StateMessage>
           )}
         </section>
 
@@ -447,33 +448,23 @@ function PostDetail({ user }) {
       </FloatingActionStack>
 
       {isDeleteDialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-6 backdrop-blur-[1px]">
-          <div
-            aria-modal="true"
-            className="w-full max-w-[320px] rounded-md border border-gray-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.14)]"
-            role="dialog"
-          >
-            <p className="text-base font-semibold text-black">
-              게시물을 삭제할까요?
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="cursor-pointer px-2 py-1 text-sm text-black transition-colors hover:text-[#d4d4d4]"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                type="button"
-              >
-                취소
-              </button>
-              <Button
-                disabled={isDeletingPost}
-                onClick={handleDeletePost}
-                size="sm"
-              >
-                {isDeletingPost ? "삭제 중" : "삭제"}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          confirmLabel="삭제"
+          isProcessing={isDeletingPost}
+          onCancel={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDeletePost}
+          title="게시물을 삭제할까요?"
+        />
+      ) : null}
+      {deletingCommentId ? (
+        <ConfirmDialog
+          confirmLabel="삭제"
+          isProcessing={isDeletingComment}
+          message="삭제한 댓글은 되돌릴 수 없어요."
+          onCancel={() => setDeletingCommentId(null)}
+          onConfirm={handleDeleteComment}
+          title="댓글을 삭제할까요?"
+        />
       ) : null}
     </main>
   );

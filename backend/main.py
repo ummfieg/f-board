@@ -150,13 +150,13 @@ def create_post(post_data: PostCreate, request: Request):
 
     current_user = get_current_user_from_access_token(request)
     title = post_data.title.strip()
-    content = post_data.content.strip()
+    content = post_data.content
     recommend_reason = post_data.recommend_reason.strip()
 
     if not title:
         raise HTTPException(status_code=400, detail="제목은 필수 입력 항목입니다.")
 
-    if not content:
+    if not content.strip():
         raise HTTPException(status_code=400, detail="내용은 필수 입력 항목입니다.")
 
     if not recommend_reason:
@@ -238,13 +238,13 @@ def update_post(post_id: int, post_data: PostCreate, request: Request):
 
     current_user = get_current_user_from_access_token(request)
     title = post_data.title.strip()
-    content = post_data.content.strip()
+    content = post_data.content
     recommend_reason = post_data.recommend_reason.strip()
 
     if not title:
         raise HTTPException(status_code=400, detail="제목은 필수 입력 항목입니다.")
 
-    if not content:
+    if not content.strip():
         raise HTTPException(status_code=400, detail="내용은 필수 입력 항목입니다.")
 
     if not recommend_reason:

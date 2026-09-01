@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { FingerPrintIcon } from "./icons";
+import TextActionButton from "./ui/TextActionButton";
 
 function Header({ onAccountClick, user }) {
   const location = useLocation();
@@ -71,14 +72,15 @@ function Header({ onAccountClick, user }) {
         </div>
 
         <div className="flex items-center gap-5">
-          <button
-            className="flex cursor-pointer items-center gap-1.5 text-[10px] font-semibold text-black transition-colors hover:text-[#d4d4d4]"
+          <TextActionButton
+            className="gap-1.5 font-semibold"
             onClick={onAccountClick}
-            type="button"
+            size="xs"
+            variant="primary"
           >
             {user ? <FingerPrintIcon className="h-4 w-4" /> : null}
             {accountLabel}
-          </button>
+          </TextActionButton>
         </div>
       </div>
     </header>

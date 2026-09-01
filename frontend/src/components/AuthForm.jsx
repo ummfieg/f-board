@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "./icons";
 import Button from "./ui/Button";
 import IconButton from "./ui/IconButton";
+import TextActionButton from "./ui/TextActionButton";
+import TextInput from "./ui/TextInput";
 
 function TypingText({ text }) {
   const [typedText, setTypedText] = useState("");
@@ -196,51 +198,43 @@ function AuthForm({
 
         <form autoComplete="on" className="mt-10 w-full" onSubmit={handleSubmit}>
           <div className="overflow-hidden rounded-md border border-gray-300">
-            <input
+            <TextInput
               autoComplete="username"
-              className={[
-                "h-10 w-full border-b px-4 text-base outline-none transition-colors placeholder:text-base placeholder:text-gray-300 focus:border-black",
-                errorField === "nickname"
-                  ? "border-neutral-500"
-                  : "border-gray-300",
-              ].join(" ")}
               name="username"
               onChange={handleNicknameChange}
               onFocus={handleNicknameFocus}
               placeholder="닉네임을 입력하세요"
               ref={nicknameInputRef}
+              tone={errorField === "nickname" ? "error" : "default"}
               type="text"
               value={nickname}
+              variant="group"
             />
-            <div className="relative">
-              <input
-                autoComplete={passwordAutoComplete}
-                className={[
-                  "h-10 w-full border-b px-4 pr-12 text-base outline-none transition-colors placeholder:text-base placeholder:text-gray-300 focus:border-black",
-                  errorField === "password"
-                    ? "border-neutral-500"
-                    : "border-transparent",
-                ].join(" ")}
-                name="password"
-                onChange={handlePasswordChange}
-                onFocus={handlePasswordFocus}
-                placeholder="비밀번호를 입력하세요"
-                ref={passwordInputRef}
-                type={isPasswordVisible ? "text" : "password"}
-                value={password}
-              />
-              <IconButton
-                ariaLabel={isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-                onClick={handleTogglePasswordVisible}
-              >
-                {isPasswordVisible ? (
-                  <EyeIcon className="h-4 w-4" />
-                ) : (
-                  <EyeSlashIcon className="h-4 w-4" />
-                )}
-              </IconButton>
-            </div>
+            <TextInput
+              autoComplete={passwordAutoComplete}
+              name="password"
+              onChange={handlePasswordChange}
+              onFocus={handlePasswordFocus}
+              placeholder="비밀번호를 입력하세요"
+              ref={passwordInputRef}
+              rightElement={
+                <IconButton
+                  ariaLabel={isPasswordVisible ? "비밀번호 숨기기" : "비밀번호 보기"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  onClick={handleTogglePasswordVisible}
+                >
+                  {isPasswordVisible ? (
+                    <EyeIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeSlashIcon className="h-4 w-4" />
+                  )}
+                </IconButton>
+              }
+              tone={errorField === "password" ? "error" : "transparent"}
+              type={isPasswordVisible ? "text" : "password"}
+              value={password}
+              variant="group"
+            />
           </div>
 
           <p
@@ -264,14 +258,15 @@ function AuthForm({
           </Button>
         </form>
 
-        <button
-          className="mt-3 self-end text-xs text-gray-400 no-underline transition-colors hover:text-black"
+        <TextActionButton
+          className="mt-3 self-end"
           onClick={handleAuthRouteChange}
           onPointerDown={clearAuthFields}
-          type="button"
+          size="xs"
+          variant="subtle"
         >
           {linkLabel}
-        </button>
+        </TextActionButton>
       </section>
     </main>
   );
