@@ -1,5 +1,6 @@
 const sizeClassNames = {
   xs: "px-2 py-1 text-xs",
+  inline: "px-0 py-1.5 text-sm",
   sm: "px-4 py-1.5 text-sm",
   md: "px-5 py-2 text-sm",
   full: "h-10 w-full text-sm font-normal",

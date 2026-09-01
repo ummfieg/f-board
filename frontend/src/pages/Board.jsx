@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpIcon,
@@ -61,9 +61,11 @@ function createBoardPostCardData(post) {
 
 function Board({ user }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = Number(searchParams.get("page"));
+  const currentPage = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
+  const searchQuery = searchParams.get("search") ?? "";
   const [posts, setPosts] = useState([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postsErrorMessage, setPostsErrorMessage] = useState("");
@@ -80,24 +82,44 @@ function Board({ user }) {
   const emptyMessage = searchQuery
     ? "검색 결과가 없어요."
     : "아직 기록된 폰트 보드가 없어요.";
+  const currentBoardPath = `/${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+
+  const updateBoardSearchParams = ({ page = currentPage, search = searchQuery }, options = {}) => {
+    const nextSearchParams = new URLSearchParams();
+    const normalizedSearch = search.trim();
+
+    if (page > 1) {
+      nextSearchParams.set("page", String(page));
+    }
+
+    if (normalizedSearch) {
+      nextSearchParams.set("search", normalizedSearch);
+    }
+
+    setSearchParams(nextSearchParams, options);
+  };
 
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
-    setCurrentPage(1);
+    updateBoardSearchParams(
+      {
+        page: 1,
+        search: event.target.value,
+      },
+      { replace: true },
+    );
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
 
   const handleClearSearch = () => {
-    setSearchQuery("");
-    setCurrentPage(1);
+    updateBoardSearchParams({ page: 1, search: "" }, { replace: true });
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
 
   const handlePreviousPage = () => {
     if (!isFirstPage) {
-      setCurrentPage((pageNumber) => pageNumber - 1);
+      updateBoardSearchParams({ page: currentPage - 1 });
       setIsLoadingPosts(true);
       setPostsErrorMessage("");
     }
@@ -105,14 +127,14 @@ function Board({ user }) {
 
   const handleNextPage = () => {
     if (!isLastPage) {
-      setCurrentPage((pageNumber) => pageNumber + 1);
+      updateBoardSearchParams({ page: currentPage + 1 });
       setIsLoadingPosts(true);
       setPostsErrorMessage("");
     }
   };
 
   const handleSelectPage = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    updateBoardSearchParams({ page: pageNumber });
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
@@ -195,7 +217,7 @@ function Board({ user }) {
 
   const handleWriteClick = () => {
     if (user) {
-      navigate("/write");
+      navigate("/write", { state: { boardPath: currentBoardPath } });
       return;
     }
 
@@ -314,6 +336,7 @@ function Board({ user }) {
               >
                 <Link
                   className="block cursor-pointer p-4"
+                  state={{ boardPath: currentBoardPath }}
                   to={`/posts/${post.id}`}
                 >
                   <div className="flex min-w-0 items-center gap-2 text-[13px] text-[#d4d4d4]">
@@ -361,7 +384,7 @@ function Board({ user }) {
 
           <nav
             aria-label="게시글 페이지"
-            className="mt-12 flex items-center justify-center gap-4"
+            className="mt-12 mb-16 flex items-center justify-center gap-4"
           >
             <PaginationButton
               disabled={isFirstPage}

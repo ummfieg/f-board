@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   createComment,
   deleteComment,
@@ -16,6 +16,7 @@ import {
 import FloatingActionStack from "../components/FloatingActionStack";
 import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import IconButton from "../components/ui/IconButton";
 import TextActionButton from "../components/ui/TextActionButton";
 import Textarea from "../components/ui/Textarea";
@@ -124,6 +125,7 @@ function transformComment(comment) {
 }
 
 function PostDetail({ user }) {
+  const location = useLocation();
   const navigate = useNavigate();
   const { postId } = useParams();
   const [postDetail, setPostDetail] = useState(null);
@@ -133,9 +135,13 @@ function PostDetail({ user }) {
   const [postErrorMessage, setPostErrorMessage] = useState("");
   const [commentErrorMessage, setCommentErrorMessage] = useState("");
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [isDeletingPost, setIsDeletingPost] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const shouldShowScrollTopButton = useScrollThreshold();
+  const boardPath = location.state?.boardPath ?? "/";
+  const detailPath = [location.pathname, location.search, location.hash].join("");
 
   const handleCommentContentChange = (event) => {
     setCommentContent(event.target.value);
@@ -160,7 +166,7 @@ function PostDetail({ user }) {
 
     try {
       const commentResponse = await createComment(postId, {
-        content: trimmedContent,
+        content: commentContent,
       });
       setComments((currentComments) => [
         ...currentComments,
@@ -174,14 +180,27 @@ function PostDetail({ user }) {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleRequestDeleteComment = (commentId) => {
+    setDeletingCommentId(commentId);
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deletingCommentId) {
+      return;
+    }
+
+    setIsDeletingComment(true);
+
     try {
-      await deleteComment(commentId);
+      await deleteComment(deletingCommentId);
       setComments((currentComments) =>
-        currentComments.filter((comment) => comment.id !== commentId),
+        currentComments.filter((comment) => comment.id !== deletingCommentId),
       );
+      setDeletingCommentId(null);
     } catch (error) {
       setCommentErrorMessage(error.message);
+    } finally {
+      setIsDeletingComment(false);
     }
   };
 
@@ -191,7 +210,7 @@ function PostDetail({ user }) {
     try {
       await deletePost(postId);
       setIsDeleteDialogOpen(false);
-      navigate("/");
+      navigate(boardPath);
     } catch (error) {
       setPostErrorMessage(error.message);
       setIsDeleteDialogOpen(false);
@@ -202,7 +221,7 @@ function PostDetail({ user }) {
 
   const handleWriteClick = () => {
     if (user) {
-      navigate("/write");
+      navigate("/write", { state: { boardPath } });
       return;
     }
 
@@ -276,8 +295,8 @@ function PostDetail({ user }) {
         <Button
           as={Link}
           className="mb-16 inline-flex no-underline"
-          size="sm"
-          to="/"
+          size="inline"
+          to={boardPath}
           variant="text"
         >
           목록으로
@@ -334,7 +353,14 @@ function PostDetail({ user }) {
             {user?.id === postDetail.authorId ? (
               <div className="flex items-center gap-4">
                 <TextActionButton
-                  onClick={() => navigate(`/posts/${postId}/edit`)}
+                  onClick={() =>
+                    navigate(`/posts/${postId}/edit`, {
+                      state: {
+                        boardPath,
+                        detailPath,
+                      },
+                    })
+                  }
                 >
                   수정
                 </TextActionButton>
@@ -391,9 +417,10 @@ function PostDetail({ user }) {
                   <p className="text-sm font-semibold leading-5 text-black">
                     {comment.nickname}
                   </p>
-                  <p className="min-w-0 break-words text-sm leading-5 text-black">
-                    {comment.content}
-                  </p>
+                  <PreservedText
+                    className="min-w-0 text-sm leading-5 text-black"
+                    text={comment.content}
+                  />
                   <div className="flex h-5 items-center gap-3 self-start leading-none">
                     <time
                       className="whitespace-nowrap text-sm leading-5 text-[#d4d4d4]"
@@ -404,7 +431,7 @@ function PostDetail({ user }) {
                     {user?.id === comment.userId ? (
                       <IconButton
                         ariaLabel="댓글 삭제"
-                        onClick={() => handleDeleteComment(comment.id)}
+                        onClick={() => handleRequestDeleteComment(comment.id)}
                         size="sm"
                         variant="muted"
                       >
@@ -449,33 +476,23 @@ function PostDetail({ user }) {
       </FloatingActionStack>
 
       {isDeleteDialogOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 px-6 backdrop-blur-[1px]">
-          <div
-            aria-modal="true"
-            className="w-full max-w-[320px] rounded-md border border-gray-200 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.14)]"
-            role="dialog"
-          >
-            <p className="text-base font-semibold text-black">
-              게시물을 삭제할까요?
-            </p>
-            <div className="mt-6 flex justify-end gap-3">
-              <TextActionButton
-                className="px-2 py-1"
-                onClick={() => setIsDeleteDialogOpen(false)}
-                variant="primary"
-              >
-                취소
-              </TextActionButton>
-              <Button
-                disabled={isDeletingPost}
-                onClick={handleDeletePost}
-                size="sm"
-              >
-                {isDeletingPost ? "삭제 중" : "삭제"}
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          confirmLabel="삭제"
+          isProcessing={isDeletingPost}
+          onCancel={() => setIsDeleteDialogOpen(false)}
+          onConfirm={handleDeletePost}
+          title="게시물을 삭제할까요?"
+        />
+      ) : null}
+      {deletingCommentId ? (
+        <ConfirmDialog
+          confirmLabel="삭제"
+          isProcessing={isDeletingComment}
+          message="삭제한 댓글은 되돌릴 수 없어요."
+          onCancel={() => setDeletingCommentId(null)}
+          onConfirm={handleDeleteComment}
+          title="댓글을 삭제할까요?"
+        />
       ) : null}
     </main>
   );
