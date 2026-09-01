@@ -6,7 +6,6 @@ import {
   getComments,
 } from "../api/comments";
 import { deletePost, getPost } from "../api/posts";
-import FontInfoPopover from "../components/FontInfoPopover";
 import {
   ArrowUpIcon,
   ChatBubbleLeftEllipsisIcon,
@@ -14,6 +13,7 @@ import {
   XMarkIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
+import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import Button from "../components/ui/Button";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
@@ -300,36 +300,10 @@ function PostDetail({ user }) {
           목록으로
         </Button>
 
-        <div className="grid min-h-[148px] grid-cols-[1fr_auto] items-start gap-5 overflow-visible pr-2">
-          <div className="ml-auto flex h-full w-[68%] flex-col">
-            <div className="flex min-h-7 flex-wrap items-center gap-2">
-              <FontInfoPopover font={postDetail.font} />
-              {postDetail.font.tags.map((tag) => (
-                <span
-                  className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-black"
-                  key={tag}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="mt-3 flex min-h-20 items-center overflow-visible pr-1">
-              <p className="thin-transparent-scrollbar max-h-20 overflow-y-auto text-left text-sm leading-relaxed text-black">
-                {postDetail.font.reason}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex h-full flex-col">
-            <div className="min-h-7" />
-            <div className="mt-3 flex min-h-20 items-center overflow-visible">
-              <span className="shrink-0 font-['Zodiak'] text-[28pt] font-extrabold italic leading-none text-black">
-                f
-              </span>
-            </div>
-          </div>
-        </div>
+        <FontRecommendationHeader
+          font={postDetail.font}
+          reason={postDetail.font.reason}
+        />
 
         <article className="mt-20">
           <time className="text-xs text-[#d4d4d4]" dateTime={postDetail.dateTime}>

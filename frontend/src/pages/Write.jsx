@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { createPost, getPost, updatePost } from "../api/posts";
 import { recommendFont } from "../api/recommendations";
-import FontInfoPopover from "../components/FontInfoPopover";
+import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
@@ -300,54 +300,12 @@ function Write({ onAuthExpired = () => {} }) {
           <StateSection as="div">게시글을 불러오는 중...</StateSection>
         ) : (
           <>
-            <div className="min-h-[148px]">
-              <div className="h-full overflow-visible pr-2">
-                <div className="grid h-full grid-cols-[1fr_auto] items-start gap-5 overflow-visible">
-                  <div className="ml-auto flex h-full w-[68%] flex-col">
-                    <div className="flex min-h-7 flex-wrap items-center gap-2">
-                      {hasRecommendation ? (
-                        <>
-                          <FontInfoPopover font={recommendation} />
-                          {recommendation.tags.map((tag) => (
-                            <span
-                              className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-medium text-black"
-                              key={tag}
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </>
-                      ) : null}
-                    </div>
-
-                    <div className="mt-3 flex min-h-20 items-center overflow-visible pr-1">
-                      {hasRecommendation ? (
-                        <p className="thin-transparent-scrollbar max-h-20 overflow-y-auto text-left text-sm leading-relaxed text-black">
-                          {typedRecommendationReason}
-                        </p>
-                      ) : (
-                        <p className="w-full text-right text-sm leading-relaxed text-[#d4d4d4]">
-                          문장을 입력하고 폰트 추천을 눌러보세요.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex h-full flex-col">
-                    <div className="min-h-7" />
-                    <div className="mt-3 flex min-h-20 items-center overflow-visible">
-                      <span
-                        className={[
-                          "shrink-0 font-['Zodiak'] text-[28pt] font-extrabold italic leading-none text-black",
-                          hasRecommendation ? "animate-tilt-once" : "",
-                        ].join(" ")}
-                      >
-                        f
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FontRecommendationHeader
+              emptyMessage="문장을 입력하고 폰트 추천을 눌러보세요."
+              font={hasRecommendation ? recommendation : null}
+              isLogoAnimated={hasRecommendation}
+              reason={typedRecommendationReason}
+            />
 
             <TextInput
               className="mt-20"
