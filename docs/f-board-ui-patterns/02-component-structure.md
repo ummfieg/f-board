@@ -38,6 +38,8 @@
 | `StateSection` | 페이지/섹션 단위 상태 화면 | 목록 loading/empty/error, 상세 loading/error, 작성 loading |
 | `StateMessage` | 작은 영역의 상태 문구 | 댓글 empty, 마이페이지 목록 loading/empty |
 | `PostCard` | 목록 게시글 카드 | 게시글 메타, 제목, 폰트 미리보기, 댓글 수 |
+| `CommentSection` | 상세 페이지 댓글 영역 | 댓글 입력, 댓글 목록, 삭제 확인 |
+| `CommentItem` | 댓글 단일 행 | 닉네임, 내용, 작성일, 삭제 버튼 |
 
 ## 버튼 분리 이유
 
@@ -185,6 +187,32 @@
 - `PostCard`는 카드 내부 렌더링과 상세 이동 링크, 카드 hover 상태를 담당한다.
 - 카드 데이터 변환은 아직 `Board.jsx`에 남긴다. API 응답 형태가 더 안정되면 `utils` 또는 별도 mapper로 이동한다.
 - skeleton을 추가할 때는 `PostCard` 옆에 `PostCardSkeleton`을 두고 카드 크기와 preview 영역 높이를 공유한다.
+
+### 댓글 영역
+
+적용 완료:
+
+- 상세 페이지 댓글 작성 영역
+- 댓글 목록
+- 댓글 삭제 확인 모달
+
+분리 결과:
+
+- `CommentSection`
+- `CommentItem`
+
+분리 이유:
+
+- 댓글 입력, 삭제 요청, empty 상태, 작성자 권한 표시가 게시글 본문과 다른 책임이다.
+- 상세 페이지가 게시글 조회/수정/삭제와 댓글 CRUD UI를 동시에 갖고 있어 파일이 비대해지기 쉽다.
+- 댓글 줄바꿈 표시, 날짜 표시, 삭제 버튼 정렬을 댓글 컴포넌트 안에서 일관되게 관리할 수 있다.
+
+분리 기준:
+
+- `PostDetail.jsx`는 댓글 데이터 상태와 API 핸들러를 소유한다.
+- `CommentSection`은 댓글 입력폼, 목록, empty 상태, 댓글 삭제 모달 배치를 담당한다.
+- `CommentItem`은 댓글 한 줄의 렌더링과 작성자 본인에게만 삭제 버튼을 노출하는 UI 규칙을 담당한다.
+- 댓글 API 호출 자체는 아직 페이지에 남긴다. 댓글 수정, 페이지네이션, optimistic update가 추가되면 별도 hook 분리를 검토한다.
 
 ## 폴더 기준
 
