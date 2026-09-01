@@ -457,13 +457,13 @@ function PostDetail({ user }) {
               게시물을 삭제할까요?
             </p>
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                className="cursor-pointer px-2 py-1 text-sm text-black transition-colors hover:text-[#d4d4d4]"
+              <TextActionButton
+                className="px-2 py-1"
                 onClick={() => setIsDeleteDialogOpen(false)}
-                type="button"
+                variant="primary"
               >
                 취소
-              </button>
+              </TextActionButton>
               <Button
                 disabled={isDeletingPost}
                 onClick={handleDeletePost}

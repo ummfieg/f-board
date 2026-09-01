@@ -6,6 +6,7 @@ import FontInfoPopover from "../components/FontInfoPopover";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
+import TabButton from "../components/ui/TabButton";
 import {
   createRecommendationFromPost,
   createRecommendationFromResponse,
@@ -354,40 +355,19 @@ function Write({ onAuthExpired = () => {} }) {
             isPreviewTab ? "border-b border-gray-200" : "-mb-px",
           ].join(" ")}
         >
-          <button
-            className={[
-              "cursor-pointer rounded-t-md border px-4 py-2 text-sm transition-colors",
-              activeTab === "write"
-                ? "border-gray-300 border-b-[#F8F9FA] bg-[#F8F9FA] text-black"
-                : isPreviewTab
-                  ? "border-transparent text-gray-500 hover:bg-[#F8F9FA] hover:text-black"
-                  : "border-transparent text-gray-500 hover:border-gray-200 hover:border-b-[#F8F9FA] hover:bg-[#F8F9FA] hover:text-black",
-            ].join(" ")}
+          <TabButton
+            active={activeTab === "write"}
             onClick={() => setActiveTab("write")}
-            type="button"
           >
             Write
-          </button>
-          <button
-            className={[
-              "rounded-t-md border px-4 py-2 text-sm transition-colors",
-              isPreviewDisabled
-                ? "cursor-not-allowed text-gray-300"
-                : isPreviewTab
-                  ? "cursor-pointer hover:bg-[#F8F9FA] hover:text-black"
-                  : "cursor-pointer hover:border-gray-200 hover:border-b-[#F8F9FA] hover:bg-[#F8F9FA] hover:text-black",
-              activeTab === "preview"
-                ? isPreviewTab
-                  ? "border-gray-300 border-b-[#F8F9FA] bg-[#F8F9FA] text-black"
-                  : "border-gray-300 border-b-[#F8F9FA] bg-[#F8F9FA] text-black"
-                : "border-transparent text-gray-500",
-            ].join(" ")}
+          </TabButton>
+          <TabButton
+            active={activeTab === "preview"}
             disabled={isPreviewDisabled}
             onClick={() => setActiveTab("preview")}
-            type="button"
           >
             Preview
-          </button>
+          </TabButton>
           {shouldShowDefaultFontNotice ? (
             <p className="ml-auto mb-2 inline-flex items-center gap-2 text-xs text-[#d4d4d4]">
               <span>{defaultFontMessage}</span>

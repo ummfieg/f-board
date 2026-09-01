@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { EyeIcon, EyeSlashIcon } from "./icons";
 import Button from "./ui/Button";
 import IconButton from "./ui/IconButton";
+import TextActionButton from "./ui/TextActionButton";
 
 function TypingText({ text }) {
   const [typedText, setTypedText] = useState("");
@@ -264,14 +265,15 @@ function AuthForm({
           </Button>
         </form>
 
-        <button
-          className="mt-3 self-end text-xs text-gray-400 no-underline transition-colors hover:text-black"
+        <TextActionButton
+          className="mt-3 self-end"
           onClick={handleAuthRouteChange}
           onPointerDown={clearAuthFields}
-          type="button"
+          size="xs"
+          variant="subtle"
         >
           {linkLabel}
-        </button>
+        </TextActionButton>
       </section>
     </main>
   );

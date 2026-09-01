@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getMyBoard } from "../api/auth";
 import { ArchiveBoxIcon, HandRaisedIcon } from "../components/icons";
+import TextActionButton from "../components/ui/TextActionButton";
 
 function createMyPostItem(post) {
   return {
@@ -94,14 +95,14 @@ function MyPage({ onLogout, user }) {
           <HandRaisedIcon className="h-5 w-5" />
         </p>
 
-        <button
-          className="mt-2 cursor-pointer !text-sm leading-none text-[#d4d4d4] transition-colors hover:text-black disabled:cursor-not-allowed disabled:hover:text-[#d4d4d4]"
+        <TextActionButton
+          className="mt-2"
           disabled={isLoggingOut}
           onClick={handleLogoutClick}
-          type="button"
+          variant="subtle"
         >
           {isLoggingOut ? "로그아웃 중..." : "로그아웃"}
-        </button>
+        </TextActionButton>
         <p className="mt-2 min-h-5 text-center text-sm text-neutral-600">
           {logoutMessage}
         </p>

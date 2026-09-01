@@ -10,6 +10,7 @@ import {
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
+import PaginationButton from "../components/ui/PaginationButton";
 import PreservedText from "../components/PreservedText";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
@@ -377,55 +378,36 @@ function Board({ user }) {
             aria-label="게시글 페이지"
             className="mt-12 flex items-center justify-center gap-4"
           >
-            <button
-              className={[
-                "text-sm transition-colors",
-                isFirstPage
-                  ? "cursor-not-allowed text-[#d4d4d4]"
-                  : "cursor-pointer text-black hover:text-[#d4d4d4]",
-              ].join(" ")}
+            <PaginationButton
               disabled={isFirstPage}
               onClick={handlePreviousPage}
-              type="button"
+              variant="edge"
             >
               이전
-            </button>
+            </PaginationButton>
             <div className="flex items-center gap-2">
               {pageNumbers.map((pageNumber) => {
                 const isCurrentPage = pageNumber === currentPage;
 
                 return (
-                  <button
+                  <PaginationButton
                     aria-current={isCurrentPage ? "page" : undefined}
-                    className={[
-                      "h-8 min-w-8 rounded-md border px-2 text-sm transition-colors",
-                      isCurrentPage
-                        ? "cursor-default border-black bg-white text-black"
-                        : "cursor-pointer border-transparent text-[#d4d4d4] hover:bg-[#F8F9FA] hover:text-black",
-                    ].join(" ")}
-                    disabled={isCurrentPage}
+                    isActive={isCurrentPage}
                     key={pageNumber}
                     onClick={() => handleSelectPage(pageNumber)}
-                    type="button"
                   >
                     {pageNumber}
-                  </button>
+                  </PaginationButton>
                 );
               })}
             </div>
-            <button
-              className={[
-                "text-sm transition-colors",
-                isLastPage
-                  ? "cursor-not-allowed text-[#d4d4d4]"
-                  : "cursor-pointer text-black hover:text-[#d4d4d4]",
-              ].join(" ")}
+            <PaginationButton
               disabled={isLastPage}
               onClick={handleNextPage}
-              type="button"
+              variant="edge"
             >
               다음
-            </button>
+            </PaginationButton>
           </nav>
         </>
       ) : (
