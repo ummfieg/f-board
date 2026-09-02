@@ -17,63 +17,17 @@ import IconButton from "../components/ui/IconButton";
 import StateSection from "../components/ui/StateSection";
 import TextActionButton from "../components/ui/TextActionButton";
 import useScrollThreshold from "../hooks/useScrollThreshold";
+import {
+  formatCommentDateTime,
+  formatPostDetailDateTime,
+} from "../utils/date";
 import { createWebFontStyle } from "../utils/webFont";
 
 const fallbackFontReason =
   "이 글에 어울리는 폰트 정보를 확인하고 있어요. 추천 이유는 AI 연결 후 더 자세히 보여줄 예정이에요.";
 
-function formatPostDate(createdAt) {
-  const date = new Date(createdAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return {
-      date: "",
-      dateTime: "",
-      time: "",
-    };
-  }
-
-  return {
-    date: new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(date),
-    dateTime: date.toISOString(),
-    time: new Intl.DateTimeFormat("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    }).format(date),
-  };
-}
-
-function formatCommentDate(createdAt) {
-  const date = new Date(createdAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return {
-      date: "",
-      dateTime: "",
-      time: "",
-    };
-  }
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  const hour = String(date.getHours()).padStart(2, "0");
-  const minute = String(date.getMinutes()).padStart(2, "0");
-
-  return {
-    date: `${year}.${month}.${day}`,
-    dateTime: date.toISOString(),
-    time: `${hour}:${minute}`,
-  };
-}
-
 function transformPostDetail(post) {
-  const formattedDate = formatPostDate(post.created_at);
+  const formattedDate = formatPostDetailDateTime(post.created_at);
   const fontName = post.font?.name ?? "Unknown";
   const isPaid = post.font?.is_paid ?? post.font?.isPaid;
 
@@ -107,7 +61,7 @@ function transformPostDetail(post) {
 }
 
 function transformComment(comment) {
-  const formattedDate = formatCommentDate(comment.created_at);
+  const formattedDate = formatCommentDateTime(comment.created_at);
 
   return {
     content: comment.content,

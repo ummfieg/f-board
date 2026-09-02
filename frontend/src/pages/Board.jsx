@@ -14,23 +14,10 @@ import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import useShareLink from "../hooks/useShareLink";
+import { formatBoardPostDate } from "../utils/date";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
 const postsPerPage = 9;
-
-function formatPostDate(createdAt) {
-  const date = new Date(createdAt);
-
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
 
 function createBoardPostCardData(post) {
   const fontName = post.font?.name ?? "Unknown";
@@ -38,7 +25,7 @@ function createBoardPostCardData(post) {
 
   return {
     id: post.id,
-    date: formatPostDate(post.created_at),
+    date: formatBoardPostDate(post.created_at),
     dateTime: post.created_at ?? "",
     fontName,
     title: post.title,
