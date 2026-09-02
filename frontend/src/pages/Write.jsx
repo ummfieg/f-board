@@ -5,8 +5,8 @@ import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
-import SegmentedToggle from "../components/ui/SegmentedToggle";
 import StateSection from "../components/ui/StateSection";
+import SwitchToggle from "../components/ui/SwitchToggle";
 import TabButton from "../components/ui/TabButton";
 import Textarea from "../components/ui/Textarea";
 import TextInput from "../components/ui/TextInput";
@@ -34,11 +34,6 @@ const noticeRecommendation = {
   usage: "기본",
   webfonts: [],
 };
-const postTypeOptions = [
-  { label: "일반", value: POST_TYPE_POST },
-  { label: "공지", value: POST_TYPE_NOTICE },
-];
-
 function Write({ onAuthExpired = () => {}, user }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -140,8 +135,8 @@ function Write({ onAuthExpired = () => {}, user }) {
     });
   };
 
-  const handlePostTypeChange = (nextPostType) => {
-    setPostType(nextPostType);
+  const handleNoticeToggle = (checked) => {
+    setPostType(checked ? POST_TYPE_NOTICE : POST_TYPE_POST);
     setPostErrorMessage("");
   };
 
@@ -336,11 +331,10 @@ function Write({ onAuthExpired = () => {}, user }) {
                   </p>
                 ) : null}
                 {isAdmin ? (
-                  <SegmentedToggle
-                    ariaLabel="게시글 유형"
-                    onChange={handlePostTypeChange}
-                    options={postTypeOptions}
-                    value={postType}
+                  <SwitchToggle
+                    checked={isNoticePost}
+                    label="공지로 등록"
+                    onChange={handleNoticeToggle}
                   />
                 ) : null}
               </div>
@@ -365,11 +359,11 @@ function Write({ onAuthExpired = () => {}, user }) {
                       {isRecommending ? "추천 중.." : "폰트 추천"}
                     </Button>
                   </div>
-                  <p className="mt-2 text-right text-xs text-[#d4d4d4]">
-                    {isNoticePost
-                      ? "공지는 Pretendard 400으로 등록돼요."
-                      : "문장을 수정하면 다른 폰트가 추천될 수 있어요."}
-                  </p>
+                  {!isNoticePost ? (
+                    <p className="mt-2 text-right text-xs text-[#d4d4d4]">
+                      문장을 수정하면 다른 폰트가 추천될 수 있어요.
+                    </p>
+                  ) : null}
                 </>
               ) : (
                 <div className="relative min-h-[380px]">

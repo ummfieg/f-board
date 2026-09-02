@@ -33,12 +33,18 @@ function NoticeTicker() {
     return null;
   }
 
-  const tickerItems = [...notices, ...notices];
+  const hasMultipleNotices = notices.length > 1;
+  const tickerItems = hasMultipleNotices ? [...notices, ...notices] : notices;
 
   return (
     <section aria-label="공지" className="bg-black text-white">
       <div className="overflow-hidden px-6 py-2">
-        <div className="notice-ticker-track inline-flex w-max items-center gap-10 whitespace-nowrap">
+        <div
+          className={[
+            "inline-flex w-max items-center gap-10 whitespace-nowrap",
+            hasMultipleNotices ? "notice-ticker-track" : "",
+          ].join(" ")}
+        >
           {tickerItems.map((notice, index) => {
             const noticeNumber = (index % notices.length) + 1;
 
