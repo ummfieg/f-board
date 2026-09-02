@@ -11,4 +11,5 @@ class User(SQLModel, table=True):
 
     nickname: str = Field(sa_column=Column(String(20), nullable=False, unique=True))
     password_hash: str = Field(sa_column=Column(String(255), nullable=False))
+    role: str = Field(default="user", sa_column=Column(String(20), nullable=False))
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

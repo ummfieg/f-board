@@ -17,11 +17,34 @@ from agent.recommend_agent import run_recommend_agent
 from routers.comments import router as comments_router
 from routers.auth import router as auth_router
 from routers.auth import get_current_user_from_access_token
+from schema_updates import ensure_notice_schema
 
 app = FastAPI()
 
 app.include_router(comments_router)
 app.include_router(auth_router)
+
+ensure_notice_schema()
+
+ADMIN_ROLE = "admin"
+POST_TYPE_POST = "post"
+POST_TYPE_NOTICE = "notice"
+NOTICE_RECOMMEND_REASON = "관리자 계정으로 공지를 등록중입니다."
+NOTICE_FONT_RESPONSE = {
+    "id": None,
+    "is_paid": False,
+    "name": "Pretendard",
+    "source": "site",
+    "license": "사이트 기본 폰트",
+    "category": "기본",
+    "tags": ["notice", "system"],
+    "description": "공지에는 사이트 기본 폰트인 Pretendard 400을 적용합니다.",
+    "weights": [400],
+    "download_url": "#",
+    "source_url": "#",
+    "license_summary": [],
+    "webfonts": [],
+}
 
 
 def get_cors_origins() -> list[str]:
@@ -65,6 +88,46 @@ def build_font_response(font: Font):
         "webfonts": font.webfonts,
     }
 
+def build_post_response(session: Session, post: Post):
+    font = session.get(Font, post.font_id) if post.font_id is not None else None
+    user = session.get(User, post.user_id)
+    comment_count = session.exec(
+        select(func.count(Comment.id)).where(Comment.post_id == post.id)
+    ).one()
+    font_response = (
+        build_font_response(font)
+        if font is not None
+        else NOTICE_FONT_RESPONSE
+    )
+
+    return {
+        "id": post.id,
+        "title": post.title,
+        "content": post.content,
+        "recommend_reason": post.recommend_reason,
+        "post_type": post.post_type,
+        "created_at": post.created_at,
+        "updated_at": post.updated_at,
+        "user": {
+            "id": user.id if user is not None else None,
+            "nickname": user.nickname if user is not None else "작성자",
+            "role": user.role if user is not None else "user",
+        },
+        "comment_count": comment_count,
+        "font": font_response,
+    }
+
+def is_admin(user: User) -> bool:
+    return user.role == ADMIN_ROLE
+
+def normalize_post_type(post_type: str | None) -> str:
+    normalized_type = (post_type or POST_TYPE_POST).strip()
+
+    if normalized_type not in {POST_TYPE_POST, POST_TYPE_NOTICE}:
+        raise HTTPException(status_code=400, detail="지원하지 않는 게시글 유형입니다.")
+
+    return normalized_type
+
 @app.get("/")
 def home():
     return {"message" : "connected backend"}
@@ -81,8 +144,15 @@ def get_posts(
 ):
 
     with Session(engine) as session:
-        statement = select(Post).order_by(Post.created_at.desc())
-        count_statement = select(func.count(Post.id))
+        statement = (
+            select(Post)
+            .where(Post.post_type == POST_TYPE_POST)
+            .order_by(Post.created_at.desc())
+        )
+        count_statement = (
+            select(func.count(Post.id))
+            .where(Post.post_type == POST_TYPE_POST)
+        )
         search_keyword = search.strip() if search is not None else ""
 
         if search_keyword:
@@ -111,29 +181,10 @@ def get_posts(
         total = session.exec(count_statement).one()
         offset = (page - 1) * page_size
         posts = session.exec(statement.offset(offset).limit(page_size)).all()
-        result = []
-        for post in posts:
-
-            font = session.get(Font, post.font_id)
-            user = session.get(User, post.user_id)
-            comment_count = session.exec(
-                select(func.count(Comment.id)).where(Comment.post_id == post.id)
-            ).one()
-
-            result.append(
-                {
-                    "id": post.id,
-                    "title": post.title,
-                    "content": post.content,
-                    "recommend_reason": post.recommend_reason,
-                    "created_at": post.created_at,
-                    "user": {
-                        "nickname": user.nickname
-                    },
-                    "comment_count": comment_count,
-                    "font": build_font_response(font) 
-                }
-            )
+        result = [
+            build_post_response(session, post)
+            for post in posts
+        ]
         
         total_pages = max(1, (total + page_size - 1) // page_size)
 
@@ -145,13 +196,37 @@ def get_posts(
             "total_pages": total_pages,
         }
 
+@app.get("/notices")
+def get_notices(limit: int = Query(default=5, ge=1, le=20)):
+    with Session(engine) as session:
+        statement = (
+            select(Post)
+            .where(Post.post_type == POST_TYPE_NOTICE)
+            .order_by(Post.created_at.desc())
+            .limit(limit)
+        )
+        notices = session.exec(statement).all()
+
+        return {
+            "items": [
+                build_post_response(session, notice)
+                for notice in notices
+            ],
+        }
+
 @app.post("/posts")
 def create_post(post_data: PostCreate, request: Request):
 
     current_user = get_current_user_from_access_token(request)
     title = post_data.title.strip()
     content = post_data.content
-    recommend_reason = post_data.recommend_reason.strip()
+    post_type = normalize_post_type(post_data.post_type)
+    is_notice = post_type == POST_TYPE_NOTICE
+    recommend_reason = (
+        NOTICE_RECOMMEND_REASON
+        if is_notice
+        else post_data.recommend_reason.strip()
+    )
 
     if not title:
         raise HTTPException(status_code=400, detail="제목은 필수 입력 항목입니다.")
@@ -159,22 +234,30 @@ def create_post(post_data: PostCreate, request: Request):
     if not content.strip():
         raise HTTPException(status_code=400, detail="내용은 필수 입력 항목입니다.")
 
+    if is_notice and not is_admin(current_user):
+        raise HTTPException(status_code=403, detail="공지 등록 권한이 없습니다.")
+
     if not recommend_reason:
         raise HTTPException(status_code=400, detail="추천 이유는 필수 입력 항목입니다.")
 
     # postgreSQL 연결 시작 수행 후 종료
     with Session(engine) as session:
-        font = session.get(Font, post_data.font_id)
+        font = (
+            session.get(Font, post_data.font_id)
+            if post_data.font_id is not None
+            else None
+        )
 
-        if font is None:
+        if not is_notice and font is None:
             raise HTTPException(status_code=400, detail="폰트 정보를 찾을 수 없습니다.")
 
         post = Post(
             title=title,
             content=content,
             recommend_reason=recommend_reason,
-            font_id=post_data.font_id,
-            user_id=current_user.id
+            font_id=font.id if font is not None else None,
+            user_id=current_user.id,
+            post_type=post_type,
         )
 
         # 객체 등록 (저장 대기열)
@@ -184,19 +267,7 @@ def create_post(post_data: PostCreate, request: Request):
         # DB 반영 조회 (최신 상태로 객체 갱신)
         session.refresh(post)
         # fast API 자동 json으로 변환해줌
-        return {
-            "id": post.id,
-            "title": post.title,
-            "content": post.content,
-            "recommend_reason": post.recommend_reason,
-            "created_at": post.created_at,
-            "updated_at": post.updated_at,
-            "user": {
-                "id": current_user.id,
-                "nickname": current_user.nickname
-            },
-            "font": build_font_response(font)
-        }
+        return build_post_response(session, post)
 
 @app.get("/posts/{post_id}")
 def get_post(post_id : int): 
@@ -210,28 +281,7 @@ def get_post(post_id : int):
                 detail="게시글을 찾을 수 없습니다."
             )
         
-        font = session.get(Font, post.font_id)
-        if font is None:
-            raise HTTPException(
-                status_code=500,
-                detail="게시글과 연결된 폰트 정보를 찾을 수 없습니다."
-    )
-        
-        user = session.get(User, post.user_id)
-
-        return  {
-                    "id": post.id,
-                    "title": post.title,
-                    "content": post.content,
-                    "recommend_reason": post.recommend_reason,
-                    "created_at": post.created_at,
-                    "updated_at": post.updated_at,
-                    "user": {
-                        "id": user.id,
-                        "nickname": user.nickname
-                    },
-                    "font": build_font_response(font) 
-                }
+        return build_post_response(session, post)
 
 @app.put("/posts/{post_id}")
 def update_post(post_id: int, post_data: PostCreate, request: Request):
@@ -239,13 +289,22 @@ def update_post(post_id: int, post_data: PostCreate, request: Request):
     current_user = get_current_user_from_access_token(request)
     title = post_data.title.strip()
     content = post_data.content
-    recommend_reason = post_data.recommend_reason.strip()
+    post_type = normalize_post_type(post_data.post_type)
+    is_notice = post_type == POST_TYPE_NOTICE
+    recommend_reason = (
+        NOTICE_RECOMMEND_REASON
+        if is_notice
+        else post_data.recommend_reason.strip()
+    )
 
     if not title:
         raise HTTPException(status_code=400, detail="제목은 필수 입력 항목입니다.")
 
     if not content.strip():
         raise HTTPException(status_code=400, detail="내용은 필수 입력 항목입니다.")
+
+    if is_notice and not is_admin(current_user):
+        raise HTTPException(status_code=403, detail="공지 수정 권한이 없습니다.")
 
     if not recommend_reason:
         raise HTTPException(status_code=400, detail="추천 이유는 필수 입력 항목입니다.")
@@ -260,15 +319,20 @@ def update_post(post_id: int, post_data: PostCreate, request: Request):
         if post.user_id != current_user.id:
             raise HTTPException(status_code=403, detail="게시글 수정 권한이 없습니다.")
 
-        font = session.get(Font, post_data.font_id)
+        font = (
+            session.get(Font, post_data.font_id)
+            if post_data.font_id is not None
+            else None
+        )
 
-        if font is None:
+        if not is_notice and font is None:
             raise HTTPException(status_code=400, detail="폰트 정보를 찾을 수 없습니다.")
 
         post.title = title
         post.content = content
         post.recommend_reason = recommend_reason
-        post.font_id = post_data.font_id
+        post.font_id = font.id if font is not None else None
+        post.post_type = post_type
         post.updated_at = datetime.now(timezone.utc)
 
         session.add(post)

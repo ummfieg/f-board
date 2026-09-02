@@ -10,6 +10,8 @@ from models.font import Font
 from models.post import Post
 from models.user import User
 from models.comment import Comment
+from schema_updates import ensure_notice_schema
 
 # 테이블 추가해도 create_all이 있으면 생성하고 없음 건너뜀
 SQLModel.metadata.create_all(engine)
+ensure_notice_schema()

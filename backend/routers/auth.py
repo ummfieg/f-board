@@ -29,6 +29,7 @@ class AuthRequest(SQLModel):
 class UserRead(SQLModel):
     id: int
     nickname: str
+    role: str
 
 
 class AuthResponse(SQLModel):
@@ -132,7 +133,7 @@ def decode_token(token: str, expected_token_type: str) -> TokenPayload:
 
 
 def build_user_response(user: User) -> UserRead:
-    return UserRead(id=user.id, nickname=user.nickname)
+    return UserRead(id=user.id, nickname=user.nickname, role=user.role)
 
 
 def find_user_by_nickname(session: Session, nickname: str) -> Optional[User]:
@@ -297,12 +298,13 @@ def get_my_board(request: Request):
         used_font_map = {}
 
         for post in posts:
-            font = session.get(Font, post.font_id)
-            font_name = font.name if font is not None else "Unknown"
+            font = session.get(Font, post.font_id) if post.font_id is not None else None
+            font_name = font.name if font is not None else "Pretendard"
 
             post_summary = {
                 "id": post.id,
                 "title": post.title,
+                "post_type": post.post_type,
                 "font": {
                     "id": post.font_id,
                     "name": font_name,
