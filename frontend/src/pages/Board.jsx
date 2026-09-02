@@ -9,6 +9,7 @@ import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
 import PaginationButton from "../components/ui/PaginationButton";
 import PostCard from "../components/PostCard";
+import PostCardSkeleton from "../components/PostCardSkeleton";
 import SearchInput from "../components/ui/SearchInput";
 import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
@@ -18,6 +19,7 @@ import { formatBoardPostDate } from "../utils/date";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
 const postsPerPage = 9;
+const skeletonPostCount = postsPerPage;
 
 function createBoardPostCardData(post) {
   const fontName = post.font?.name ?? "Unknown";
@@ -211,7 +213,14 @@ function Board({ user }) {
       </div>
 
       {isLoadingPosts ? (
-        <StateSection minHeight="sm">게시글을 불러오는 중이에요.</StateSection>
+        <section
+          aria-label="게시글 목록을 불러오는 중"
+          className="mt-20 grid min-h-[820px] grid-cols-3 content-start gap-x-6 gap-y-10"
+        >
+          {Array.from({ length: skeletonPostCount }, (_, index) => (
+            <PostCardSkeleton key={`post-skeleton-${index}`} />
+          ))}
+        </section>
       ) : postsErrorMessage ? (
         <StateSection minHeight="sm" tone="error">
           {postsErrorMessage}

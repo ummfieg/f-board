@@ -295,7 +295,13 @@ function Write({ onAuthExpired = () => {} }) {
                     withThinScrollbar
                   />
                   <div className="mt-3 flex justify-end">
-                    <Button onClick={handleRecommend}>폰트 추천</Button>
+                    <Button
+                      className="min-w-[86px]"
+                      disabled={isRecommending}
+                      onClick={handleRecommend}
+                    >
+                      {isRecommending ? "추천 중.." : "폰트 추천"}
+                    </Button>
                   </div>
                   <p className="mt-2 text-right text-xs text-[#d4d4d4]">
                     문장을 수정하면 다른 폰트가 추천될 수 있어요.
