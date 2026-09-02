@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import {
   ArrowUpIcon,
   PencilSquareIcon,
-  ShareIcon,
 } from "../components/icons";
 import FloatingActionStack from "../components/FloatingActionStack";
 import IconButton from "../components/ui/IconButton";
@@ -14,7 +13,6 @@ import SearchInput from "../components/ui/SearchInput";
 import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
-import useShareLink from "../hooks/useShareLink";
 import { formatBoardPostDate } from "../utils/date";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
@@ -50,9 +48,6 @@ function Board({ user }) {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postsErrorMessage, setPostsErrorMessage] = useState("");
-  const { copyShareLink, shareMessage } = useShareLink({
-    successMessage: "링크가 복사되었습니다. 좋은 폰트는 나눠야죠.",
-  });
   const shouldShowScrollTopButton = useScrollThreshold();
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
@@ -179,25 +174,6 @@ function Board({ user }) {
 
   return (
     <main className="p-6">
-      <div className="mx-auto flex w-full max-w-[720px] justify-end pt-6">
-        <div className="relative">
-          <IconButton
-            ariaLabel="페이지 링크 복사"
-            className="h-10 w-10 rounded-md border border-gray-300"
-            onClick={copyShareLink}
-            size="sm"
-            variant="ghost"
-          >
-            <ShareIcon className="h-4 w-4" />
-          </IconButton>
-          {shareMessage ? (
-            <p className="absolute right-0 top-12 z-20 w-max rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs text-black shadow-[0_6px_18px_rgba(15,23,42,0.08)]">
-              {shareMessage}
-            </p>
-          ) : null}
-        </div>
-      </div>
-
       <div className="flex flex-col items-center pt-4">
         <p className="mb-5 text-center text-base font-normal text-black">
           글에 어울리는 폰트를 검색하고 기록해보세요

@@ -40,7 +40,7 @@ function Header({ onAccountClick, user }) {
         : defaultNavItems;
 
   return (
-    <header className="relative rounded-t-md bg-white px-6 py-5 shadow-[0_4px_4px_-4px_rgba(15,23,42,0.14)]">
+    <header className="relative z-10 rounded-t-md bg-white px-6 py-5 shadow-[0_4px_4px_-4px_rgba(15,23,42,0.14)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-7">
           <Link
