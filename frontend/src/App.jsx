@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { getCurrentUser, logoutUser } from "./api/auth";
 import Header from "./components/Header";
+import NoticeTicker from "./components/NoticeTicker";
 import ScrollToTop from "./components/ScrollToTop";
 import Board from "./pages/Board";
 import Login from "./pages/Login";
@@ -11,9 +12,11 @@ import Signup from "./pages/Signup";
 import Write from "./pages/Write";
 
 function App() {
+  const location = useLocation();
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const shouldShowNoticeTicker = location.pathname === "/";
 
   useEffect(() => {
     const checkCurrentUser = async () => {
@@ -69,6 +72,7 @@ function App() {
     <div className="min-h-screen w-full max-w-[1024px] rounded-[10px] bg-white">
       <ScrollToTop />
       <Header onAccountClick={handleAccountClick} user={user} />
+      {shouldShowNoticeTicker ? <NoticeTicker /> : null}
       <Routes>
         <Route element={<Board user={user} />} path="/" />
         <Route

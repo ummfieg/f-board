@@ -100,6 +100,16 @@ select {
     }
   }
 
+  @keyframes notice-ticker-scroll {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   .animate-tilt-once {
     animation: tilt-once 680ms ease-in-out 1;
     transform-origin: center;
@@ -107,6 +117,15 @@ select {
 
   .animate-shake-error {
     animation: shake-error 320ms ease-out 1;
+  }
+
+  .notice-ticker-track {
+    animation: notice-ticker-scroll 24s linear infinite;
+  }
+
+  .notice-ticker-track:hover,
+  .notice-ticker-track:focus-within {
+    animation-play-state: paused;
   }
 
   .thin-transparent-scrollbar {
@@ -132,5 +151,12 @@ select {
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .notice-ticker-track {
+      animation: none;
+      transform: none;
+    }
   }
 }
