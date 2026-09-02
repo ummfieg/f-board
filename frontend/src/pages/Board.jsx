@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowUpIcon,
   PencilSquareIcon,
@@ -13,19 +13,10 @@ import SearchInput from "../components/ui/SearchInput";
 import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
 import useScrollThreshold from "../hooks/useScrollThreshold";
+import useShareLink from "../hooks/useShareLink";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
 const postsPerPage = 9;
-
-function getConfiguredShareOrigin() {
-  const configuredSiteUrl = import.meta.env.VITE_PUBLIC_SITE_URL?.trim();
-
-  if (!configuredSiteUrl) {
-    return "";
-  }
-
-  return configuredSiteUrl.replace(/\/+$/, "");
-}
 
 function formatPostDate(createdAt) {
   const date = new Date(createdAt);
@@ -70,8 +61,9 @@ function Board({ user }) {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const [postsErrorMessage, setPostsErrorMessage] = useState("");
-  const [shareMessage, setShareMessage] = useState("");
-  const shareMessageTimerRef = useRef(null);
+  const { copyShareLink, shareMessage } = useShareLink({
+    successMessage: "링크가 복사되었습니다. 좋은 폰트는 나눠야죠.",
+  });
   const shouldShowScrollTopButton = useScrollThreshold();
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
@@ -140,82 +132,6 @@ function Board({ user }) {
     setPostsErrorMessage("");
   };
 
-  const buildShareUrl = () => {
-    const configuredShareOrigin = getConfiguredShareOrigin();
-    const currentPath = [
-      window.location.pathname,
-      window.location.search,
-      window.location.hash,
-    ].join("");
-
-    if (!configuredShareOrigin) {
-      return window.location.href;
-    }
-
-    try {
-      return new URL(currentPath, `${configuredShareOrigin}/`).toString();
-    } catch {
-      return window.location.href;
-    }
-  };
-
-  const copyTextWithTextarea = (text) => {
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.setAttribute("readonly", "");
-    textarea.style.position = "fixed";
-    textarea.style.top = "-9999px";
-    textarea.style.left = "-9999px";
-
-    document.body.appendChild(textarea);
-    textarea.select();
-
-    const isCopySuccessful = document.execCommand("copy");
-
-    document.body.removeChild(textarea);
-
-    if (!isCopySuccessful) {
-      throw new Error("텍스트 복사에 실패했습니다.");
-    }
-  };
-
-  const copyPageShareText = async () => {
-    const shareUrl = buildShareUrl();
-
-    if (navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        return;
-      } catch {
-        copyTextWithTextarea(shareUrl);
-        return;
-      }
-    }
-
-    copyTextWithTextarea(shareUrl);
-  };
-
-  const showShareMessage = (message) => {
-    setShareMessage(message);
-
-    if (shareMessageTimerRef.current) {
-      clearTimeout(shareMessageTimerRef.current);
-    }
-
-    shareMessageTimerRef.current = setTimeout(() => {
-      setShareMessage("");
-    }, 1600);
-  };
-
-  const handleShareClick = async () => {
-    try {
-      await copyPageShareText();
-      showShareMessage("링크가 복사되었습니다. 좋은 폰트는 나눠야죠.");
-    } catch {
-      showShareMessage("복사하지 못했어요");
-    }
-  };
-
   const handleWriteClick = () => {
     if (user) {
       navigate("/write", { state: { boardPath: currentBoardPath } });
@@ -231,14 +147,6 @@ function Board({ user }) {
       top: 0,
     });
   };
-
-  useEffect(() => {
-    return () => {
-      if (shareMessageTimerRef.current) {
-        clearTimeout(shareMessageTimerRef.current);
-      }
-    };
-  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -287,7 +195,7 @@ function Board({ user }) {
           <IconButton
             ariaLabel="페이지 링크 복사"
             className="h-10 w-10 rounded-md border border-gray-300"
-            onClick={handleShareClick}
+            onClick={copyShareLink}
             size="sm"
             variant="ghost"
           >
