@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { createPost, getPost, updatePost } from "../api/posts";
-import { recommendFont } from "../api/recommendations";
 import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
@@ -10,14 +9,7 @@ import StateSection from "../components/ui/StateSection";
 import TabButton from "../components/ui/TabButton";
 import Textarea from "../components/ui/Textarea";
 import TextInput from "../components/ui/TextInput";
-import {
-  createRecommendationFromPost,
-  createRecommendationFromResponse,
-} from "../utils/recommendation";
-import {
-  shuffleWaitingMessages,
-  waitingMessages,
-} from "../utils/waitingMessages";
+import useFontRecommendation from "../hooks/useFontRecommendation";
 
 function Write({ onAuthExpired = () => {} }) {
   const location = useLocation();
@@ -30,18 +22,20 @@ function Write({ onAuthExpired = () => {} }) {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isLoadingPost, setIsLoadingPost] = useState(isEditMode);
-  const [isRecommending, setIsRecommending] = useState(false);
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
   const [postErrorMessage, setPostErrorMessage] = useState("");
-  const [recommendation, setRecommendation] = useState(null);
-  const [typedRecommendation, setTypedRecommendation] = useState({
-    source: "",
-    text: "",
-  });
-  const [waitingMessageIndex, setWaitingMessageIndex] = useState(0);
-  const [waitingMessageQueue, setWaitingMessageQueue] = useState(waitingMessages);
-  const waitingMessage = waitingMessageQueue[waitingMessageIndex] ?? waitingMessages[0];
   const isPreviewTab = activeTab === "preview";
+  const {
+    isRecommending,
+    recommendation,
+    requestRecommendation,
+    setRecommendationFromPost,
+    typedRecommendationReason,
+    waitingMessage,
+  } = useFontRecommendation({
+    isPreviewTab,
+    onError: setPostErrorMessage,
+  });
   const hasRecommendation = isPreviewTab && recommendation;
   const defaultFontMessage =
     "웹폰트가 없어 기본 폰트로 표시됐어요.";
@@ -52,11 +46,6 @@ function Write({ onAuthExpired = () => {} }) {
     recommendation.downloadUrl.trim() !== "" &&
     recommendation.downloadUrl !== "#";
   const previewText = content;
-  const recommendationReason = recommendation?.reason ?? "";
-  const typedRecommendationReason =
-    isPreviewTab && typedRecommendation.source === recommendationReason
-      ? typedRecommendation.text
-      : "";
 
   useEffect(() => {
     if (!isEditMode) {
@@ -78,7 +67,7 @@ function Write({ onAuthExpired = () => {} }) {
 
         setTitle(post.title ?? "");
         setContent(post.content ?? "");
-        setRecommendation(createRecommendationFromPost(post));
+        setRecommendationFromPost(post);
         setActiveTab("write");
       } catch (error) {
         if (shouldUpdateState) {
@@ -96,7 +85,7 @@ function Write({ onAuthExpired = () => {} }) {
     return () => {
       shouldUpdateState = false;
     };
-  }, [isEditMode, postId]);
+  }, [isEditMode, postId, setRecommendationFromPost]);
 
   const handleTitleChange = (event) => {
     setTitle(event.target.value);
@@ -109,72 +98,10 @@ function Write({ onAuthExpired = () => {} }) {
   };
 
   const handleRecommend = async () => {
-    const trimmedContent = content.trim();
-
-    if (!trimmedContent) {
-      setPostErrorMessage("게시글 내용을 입력해주세요.");
-      return;
-    }
-
-    setPostErrorMessage("");
-    setActiveTab("preview");
-    setWaitingMessageIndex(0);
-    setWaitingMessageQueue(shuffleWaitingMessages());
-    setIsRecommending(true);
-    setRecommendation(null);
-
-    try {
-      const recommendationResponse = await recommendFont({
-        text: trimmedContent,
-      });
-
-      setRecommendation(createRecommendationFromResponse(recommendationResponse));
-    } catch (error) {
-      setPostErrorMessage(error.message);
-    } finally {
-      setIsRecommending(false);
-    }
+    await requestRecommendation(content, {
+      onStart: () => setActiveTab("preview"),
+    });
   };
-
-  useEffect(() => {
-    if (!isRecommending) {
-      return undefined;
-    }
-
-    const waitingMessageTimer = setInterval(() => {
-      setWaitingMessageIndex((currentIndex) => {
-        return (currentIndex + 1) % waitingMessageQueue.length;
-      });
-    }, 4200);
-
-    return () => {
-      clearInterval(waitingMessageTimer);
-    };
-  }, [isRecommending, waitingMessageQueue.length]);
-
-  useEffect(() => {
-    if (!isPreviewTab || !recommendationReason) {
-      return undefined;
-    }
-
-    let currentIndex = 0;
-
-    const typingTimer = setInterval(() => {
-      currentIndex += 1;
-      setTypedRecommendation({
-        source: recommendationReason,
-        text: recommendationReason.slice(0, currentIndex),
-      });
-
-      if (currentIndex >= recommendationReason.length) {
-        clearInterval(typingTimer);
-      }
-    }, 18);
-
-    return () => {
-      clearInterval(typingTimer);
-    };
-  }, [isPreviewTab, recommendationReason]);
 
   const handleSubmitPost = async () => {
     const trimmedTitle = title.trim();

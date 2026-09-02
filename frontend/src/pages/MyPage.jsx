@@ -1,7 +1,8 @@
-import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getMyBoard } from "../api/auth";
 import { ArchiveBoxIcon, HandRaisedIcon } from "../components/icons";
+import MyPageAccordionSection from "../components/MyPageAccordionSection";
+import MyPagePostLink from "../components/MyPagePostLink";
 import StateMessage from "../components/ui/StateMessage";
 import TextActionButton from "../components/ui/TextActionButton";
 
@@ -109,93 +110,57 @@ function MyPage({ onLogout, user }) {
         </p>
 
         <div className="mt-5 w-full overflow-hidden rounded-md border border-gray-300">
-          <details className="group border-b border-gray-300">
-            <summary className="flex h-10 cursor-pointer list-none items-center justify-between px-4 text-sm text-black transition-colors hover:bg-[#F8F9FA] group-open:bg-[#F8F9FA]">
-              <span className="flex items-center gap-2 font-bold">
-                <span className="flex w-4 items-center justify-center">
-                  <ArchiveBoxIcon className="h-4 w-4" />
-                </span>
-                내가 등록한 게시물
-              </span>
-              <span className="text-xs text-[#d4d4d4] group-open:rotate-90">
-                &gt;
-              </span>
-            </summary>
-            <ul className="thin-transparent-scrollbar max-h-[360px] overflow-y-auto border-t border-gray-200 px-4 py-3">
-              {isLoadingMyBoard ? (
-                <StateMessage as="li" className="py-1.5">
-                  게시물을 불러오는 중...
-                </StateMessage>
-              ) : hasMyPosts ? (
-                myPosts.map((post) => (
-                  <li key={post.id}>
-                    <Link
-                      className="flex items-center gap-2 py-1.5 text-sm text-black no-underline transition-colors hover:text-[#d4d4d4]"
-                      to={`/posts/${post.id}`}
-                    >
-                      <span className="h-1 w-1 shrink-0 rounded-full bg-[#d4d4d4]" />
-                      {post.title}
-                    </Link>
-                  </li>
-                ))
-              ) : (
-                <StateMessage as="li" className="py-1.5">
-                  아직 등록한 게시물이 없어요.
-                </StateMessage>
-              )}
-            </ul>
-          </details>
+          <MyPageAccordionSection
+            emptyMessage="아직 등록한 게시물이 없어요."
+            icon={<ArchiveBoxIcon className="h-4 w-4" />}
+            isEmpty={!hasMyPosts}
+            isLoading={isLoadingMyBoard}
+            loadingMessage="게시물을 불러오는 중..."
+            title="내가 등록한 게시물"
+            withBottomBorder
+          >
+            {myPosts.map((post) => (
+              <li key={post.id}>
+                <MyPagePostLink className="py-1.5" to={`/posts/${post.id}`}>
+                  {post.title}
+                </MyPagePostLink>
+              </li>
+            ))}
+          </MyPageAccordionSection>
 
-          <details className="group">
-            <summary className="flex h-10 cursor-pointer list-none items-center justify-between px-4 text-sm text-black transition-colors hover:bg-[#F8F9FA] group-open:bg-[#F8F9FA]">
-              <span className="flex items-center gap-2 font-bold">
-                <span className="flex w-4 items-center justify-center">
-                  <span className="font-['Zodiak'] text-[17px] font-extrabold italic leading-none text-black">
-                    f
+          <MyPageAccordionSection
+            emptyMessage="아직 사용한 폰트가 없어요."
+            icon={
+              <span className="font-['Zodiak'] text-[17px] font-extrabold italic leading-none text-black">
+                f
+              </span>
+            }
+            isEmpty={!hasUsedFonts}
+            isLoading={isLoadingMyBoard}
+            loadingMessage="폰트 기록을 불러오는 중..."
+            maxHeight="fonts"
+            title="내가 사용한 폰트"
+          >
+            {usedFonts.map((fontGroup) => (
+              <li className="py-1.5 text-sm text-black" key={fontGroup.fontName}>
+                <p className="font-semibold">
+                  {fontGroup.fontName}
+                  <span className="ml-2 text-xs font-normal text-[#d4d4d4]">
+                    {fontGroup.posts.length}
                   </span>
-                </span>
-                내가 사용한 폰트
-              </span>
-              <span className="text-xs text-[#d4d4d4] group-open:rotate-90">
-                &gt;
-              </span>
-            </summary>
-            <ul className="thin-transparent-scrollbar max-h-[320px] overflow-y-auto border-t border-gray-200 px-4 py-3">
-              {isLoadingMyBoard ? (
-                <StateMessage as="li" className="py-1.5">
-                  폰트 기록을 불러오는 중...
-                </StateMessage>
-              ) : hasUsedFonts ? (
-                usedFonts.map((fontGroup) => (
-                  <li className="py-1.5 text-sm text-black" key={fontGroup.fontName}>
-                    <p className="font-semibold">
-                      {fontGroup.fontName}
-                      <span className="ml-2 text-xs font-normal text-[#d4d4d4]">
-                        {fontGroup.posts.length}
-                      </span>
-                    </p>
-                    <ul className="mt-1">
-                      {fontGroup.posts.map((post) => (
-                        <li key={post.id}>
-                          <Link
-                            className="flex items-center gap-2 py-1 text-sm text-black no-underline transition-colors hover:text-[#d4d4d4]"
-                            to={`/posts/${post.id}`}
-                          >
-                            <span className="h-1 w-1 shrink-0 rounded-full bg-[#d4d4d4]" />
-                            {post.title}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </li>
-                ))
-              ) : (
-                <StateMessage as="li" className="py-1.5">
-                  아직 사용한 폰트가 없어요.
-                </StateMessage>
-              )}
-            </ul>
-          </details>
+                </p>
+                <ul className="mt-1">
+                  {fontGroup.posts.map((post) => (
+                    <li key={post.id}>
+                      <MyPagePostLink className="py-1" to={`/posts/${post.id}`}>
+                        {post.title}
+                      </MyPagePostLink>
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </MyPageAccordionSection>
         </div>
         <StateMessage className="mt-2 min-h-5 text-center" tone="error">
           {myBoardErrorMessage}

@@ -37,6 +37,11 @@
 | `TabButton` | 작성 화면 탭 전환 | Write, Preview |
 | `StateSection` | 페이지/섹션 단위 상태 화면 | 목록 loading/empty/error, 상세 loading/error, 작성 loading |
 | `StateMessage` | 작은 영역의 상태 문구 | 댓글 empty, 마이페이지 목록 loading/empty |
+| `PostCard` | 목록 게시글 카드 | 게시글 메타, 제목, 폰트 미리보기, 댓글 수 |
+| `CommentSection` | 상세 페이지 댓글 영역 | 댓글 입력, 댓글 목록, 삭제 확인 |
+| `CommentItem` | 댓글 단일 행 | 닉네임, 내용, 작성일, 삭제 버튼 |
+| `MyPageAccordionSection` | 마이페이지 아코디언 섹션 | 내가 등록한 게시물, 내가 사용한 폰트 |
+| `MyPagePostLink` | 마이페이지 게시글 링크 행 | 게시글 링크와 bullet 표시 |
 
 ## 버튼 분리 이유
 
@@ -165,11 +170,11 @@
 
 ### 게시글 카드
 
-후보:
+적용 완료:
 
 - 목록 페이지의 게시글 카드
 
-분리 방향:
+분리 결과:
 
 - `PostCard`
 
@@ -178,6 +183,65 @@
 - 현재는 목록 한 곳에서만 쓰이지만 내부 구조가 길고, skeleton/hover/fallback font 상태가 추가되면 페이지 파일이 무거워진다.
 - 카드 단위 테스트나 시각 QA를 붙이기 좋다.
 
+분리 기준:
+
+- `Board.jsx`는 검색, 페이지네이션, 목록 상태, 이동 경로 보존을 담당한다.
+- `PostCard`는 카드 내부 렌더링과 상세 이동 링크, 카드 hover 상태를 담당한다.
+- 카드 데이터 변환은 아직 `Board.jsx`에 남긴다. API 응답 형태가 더 안정되면 `utils` 또는 별도 mapper로 이동한다.
+- skeleton을 추가할 때는 `PostCard` 옆에 `PostCardSkeleton`을 두고 카드 크기와 preview 영역 높이를 공유한다.
+
+### 댓글 영역
+
+적용 완료:
+
+- 상세 페이지 댓글 작성 영역
+- 댓글 목록
+- 댓글 삭제 확인 모달
+
+분리 결과:
+
+- `CommentSection`
+- `CommentItem`
+
+분리 이유:
+
+- 댓글 입력, 삭제 요청, empty 상태, 작성자 권한 표시가 게시글 본문과 다른 책임이다.
+- 상세 페이지가 게시글 조회/수정/삭제와 댓글 CRUD UI를 동시에 갖고 있어 파일이 비대해지기 쉽다.
+- 댓글 줄바꿈 표시, 날짜 표시, 삭제 버튼 정렬을 댓글 컴포넌트 안에서 일관되게 관리할 수 있다.
+
+분리 기준:
+
+- `PostDetail.jsx`는 댓글 데이터 상태와 API 핸들러를 소유한다.
+- `CommentSection`은 댓글 입력폼, 목록, empty 상태, 댓글 삭제 모달 배치를 담당한다.
+- `CommentItem`은 댓글 한 줄의 렌더링과 작성자 본인에게만 삭제 버튼을 노출하는 UI 규칙을 담당한다.
+- 댓글 API 호출 자체는 아직 페이지에 남긴다. 댓글 수정, 페이지네이션, optimistic update가 추가되면 별도 hook 분리를 검토한다.
+
+### 마이페이지 아코디언
+
+적용 완료:
+
+- 내가 등록한 게시물 섹션
+- 내가 사용한 폰트 섹션
+- 아코디언 내부 게시글 링크 행
+
+분리 결과:
+
+- `MyPageAccordionSection`
+- `MyPagePostLink`
+
+분리 이유:
+
+- `details`, `summary`, loading, empty, scroll list 구조가 마이페이지 안에서 반복된다.
+- 각 섹션의 데이터는 다르지만 아코디언 제목, 아이콘, 상태 문구, 리스트 박스의 시각 규칙은 같다.
+- 게시글 링크 행의 bullet, hover, spacing 규칙이 두 섹션에서 반복된다.
+
+분리 기준:
+
+- `MyPage.jsx`는 사용자 정보, 로그아웃, 마이페이지 데이터 로딩 상태를 소유한다.
+- `MyPageAccordionSection`은 아코디언 껍데기와 loading/empty 상태 배치를 담당한다.
+- `MyPagePostLink`는 마이페이지 안에서 게시글로 이동하는 링크의 시각 규칙을 담당한다.
+- 사용한 폰트 그룹의 내부 데이터 매핑은 아직 `MyPage.jsx`에 남긴다. 폰트 그룹 표시가 다른 화면에서도 반복되면 별도 컴포넌트로 분리한다.
+
 ## 폴더 기준
 
 - `frontend/src/components/ui`: 범용 UI 원자 컴포넌트
@@ -185,6 +249,24 @@
 - `frontend/src/hooks`: 상태와 브라우저 이벤트를 다루는 재사용 로직
 - `frontend/src/utils`: 렌더링과 무관한 데이터 변환/계산 로직
 - `frontend/src/pages`: 라우트 단위 화면 조립과 데이터 요청
+
+## util 분리 기준
+
+렌더링과 무관한 변환 로직이 여러 페이지에서 반복되면 `utils`로 분리한다.
+
+- `date.js`: 목록 게시글 날짜, 상세 게시글 날짜/시간, 댓글 날짜/시간 포맷을 관리한다.
+- 페이지 컴포넌트는 어떤 날짜 포맷이 필요한지만 선택하고, `Intl.DateTimeFormat` 구성이나 fallback 처리는 util에 둔다.
+- API 응답 형태를 화면용 데이터로 바꾸는 mapper는 화면 맥락이 강하면 페이지에 남기고, 같은 변환이 반복될 때 utils로 이동한다.
+
+## hook 분리 기준
+
+컴포넌트가 화면 렌더링보다 브라우저 API, 타이머, 반복 이벤트를 오래 들고 있으면 hook 분리 후보로 본다.
+
+- `useShareLink`: 공유 URL 생성, 클립보드 복사, fallback 복사, 안내 메시지 타이머를 관리한다.
+- `useFontRecommendation`: 폰트 추천 요청, waiting message 순환, 추천 이유 타이핑 표시를 관리한다.
+- 페이지 컴포넌트는 공유 버튼 위치와 메시지 노출만 담당한다.
+- `window`, `navigator.clipboard`, `setTimeout`처럼 브라우저 API와 lifecycle cleanup이 같이 있는 로직은 hook으로 빼면 페이지가 읽기 쉬워진다.
+- API 요청, interval, typing animation state가 한 화면에 묶여 길어질 때도 hook 분리 후보로 본다.
 
 ## 페이지에 남겨도 되는 코드
 
