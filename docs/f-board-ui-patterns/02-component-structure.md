@@ -263,8 +263,10 @@
 컴포넌트가 화면 렌더링보다 브라우저 API, 타이머, 반복 이벤트를 오래 들고 있으면 hook 분리 후보로 본다.
 
 - `useShareLink`: 공유 URL 생성, 클립보드 복사, fallback 복사, 안내 메시지 타이머를 관리한다.
+- `useFontRecommendation`: 폰트 추천 요청, waiting message 순환, 추천 이유 타이핑 표시를 관리한다.
 - 페이지 컴포넌트는 공유 버튼 위치와 메시지 노출만 담당한다.
 - `window`, `navigator.clipboard`, `setTimeout`처럼 브라우저 API와 lifecycle cleanup이 같이 있는 로직은 hook으로 빼면 페이지가 읽기 쉬워진다.
+- API 요청, interval, typing animation state가 한 화면에 묶여 길어질 때도 hook 분리 후보로 본다.
 
 ## 페이지에 남겨도 되는 코드
 
