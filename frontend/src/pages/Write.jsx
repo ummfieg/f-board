@@ -5,13 +5,41 @@ import FontRecommendationHeader from "../components/FontRecommendationHeader";
 import PreservedText from "../components/PreservedText";
 import TypingWaitingMessage from "../components/TypingWaitingMessage";
 import Button from "../components/ui/Button";
+import SegmentedToggle from "../components/ui/SegmentedToggle";
 import StateSection from "../components/ui/StateSection";
 import TabButton from "../components/ui/TabButton";
 import Textarea from "../components/ui/Textarea";
 import TextInput from "../components/ui/TextInput";
 import useFontRecommendation from "../hooks/useFontRecommendation";
 
-function Write({ onAuthExpired = () => {} }) {
+const POST_TYPE_POST = "post";
+const POST_TYPE_NOTICE = "notice";
+const noticeRecommendationReason = "관리자 계정으로 공지를 등록중입니다.";
+const noticeRecommendation = {
+  downloadUrl: "#",
+  id: null,
+  isDefaultFontApplied: false,
+  isPaid: false,
+  license: "사이트 기본 폰트",
+  licenseSummary: [],
+  name: "Pretendard",
+  previewFontStyle: {
+    fontFamily: "\"Pretendard\", sans-serif",
+    fontWeight: 400,
+  },
+  reason: noticeRecommendationReason,
+  source: "site",
+  sourceUrl: "#",
+  tags: ["notice", "system"],
+  usage: "기본",
+  webfonts: [],
+};
+const postTypeOptions = [
+  { label: "일반", value: POST_TYPE_POST },
+  { label: "공지", value: POST_TYPE_NOTICE },
+];
+
+function Write({ onAuthExpired = () => {}, user }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { postId } = useParams();
@@ -21,10 +49,13 @@ function Write({ onAuthExpired = () => {} }) {
   const [activeTab, setActiveTab] = useState("write");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [postType, setPostType] = useState(POST_TYPE_POST);
   const [isLoadingPost, setIsLoadingPost] = useState(isEditMode);
   const [isSubmittingPost, setIsSubmittingPost] = useState(false);
   const [postErrorMessage, setPostErrorMessage] = useState("");
   const isPreviewTab = activeTab === "preview";
+  const isAdmin = user?.role === "admin";
+  const isNoticePost = isAdmin && postType === POST_TYPE_NOTICE;
   const {
     isRecommending,
     recommendation,
@@ -36,7 +67,8 @@ function Write({ onAuthExpired = () => {} }) {
     isPreviewTab,
     onError: setPostErrorMessage,
   });
-  const hasRecommendation = isPreviewTab && recommendation;
+  const visibleRecommendation = isNoticePost ? noticeRecommendation : recommendation;
+  const hasRecommendation = isPreviewTab && visibleRecommendation;
   const defaultFontMessage =
     "웹폰트가 없어 기본 폰트로 표시됐어요.";
   const shouldShowDefaultFontNotice =
@@ -67,6 +99,7 @@ function Write({ onAuthExpired = () => {} }) {
 
         setTitle(post.title ?? "");
         setContent(post.content ?? "");
+        setPostType(post.post_type ?? POST_TYPE_POST);
         setRecommendationFromPost(post);
         setActiveTab("write");
       } catch (error) {
@@ -98,16 +131,27 @@ function Write({ onAuthExpired = () => {} }) {
   };
 
   const handleRecommend = async () => {
+    if (isNoticePost) {
+      return;
+    }
+
     await requestRecommendation(content, {
       onStart: () => setActiveTab("preview"),
     });
   };
 
+  const handlePostTypeChange = (nextPostType) => {
+    setPostType(nextPostType);
+    setPostErrorMessage("");
+  };
+
   const handleSubmitPost = async () => {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
-    const selectedFontId = recommendation?.id;
-    const recommendReason = recommendation?.reason?.trim();
+    const selectedFontId = isNoticePost ? null : recommendation?.id;
+    const recommendReason = isNoticePost
+      ? noticeRecommendationReason
+      : recommendation?.reason?.trim();
 
     if (!trimmedTitle) {
       setPostErrorMessage("제목을 입력해주세요.");
@@ -119,7 +163,7 @@ function Write({ onAuthExpired = () => {} }) {
       return;
     }
 
-    if (!selectedFontId) {
+    if (!isNoticePost && !selectedFontId) {
       setPostErrorMessage("폰트 추천 후 등록할 수 있어요.");
       return;
     }
@@ -137,6 +181,7 @@ function Write({ onAuthExpired = () => {} }) {
         title: trimmedTitle,
         content,
         fontId: selectedFontId,
+        postType,
         recommendReason,
       });
 
@@ -156,8 +201,10 @@ function Write({ onAuthExpired = () => {} }) {
   const handleUpdatePost = async () => {
     const trimmedTitle = title.trim();
     const trimmedContent = content.trim();
-    const selectedFontId = recommendation?.id;
-    const recommendReason = recommendation?.reason?.trim();
+    const selectedFontId = isNoticePost ? null : recommendation?.id;
+    const recommendReason = isNoticePost
+      ? noticeRecommendationReason
+      : recommendation?.reason?.trim();
 
     if (!trimmedTitle) {
       setPostErrorMessage("제목을 입력해주세요.");
@@ -169,7 +216,7 @@ function Write({ onAuthExpired = () => {} }) {
       return;
     }
 
-    if (!selectedFontId) {
+    if (!isNoticePost && !selectedFontId) {
       setPostErrorMessage("폰트 정보가 필요해요.");
       return;
     }
@@ -187,6 +234,7 @@ function Write({ onAuthExpired = () => {} }) {
         title: trimmedTitle,
         content,
         fontId: selectedFontId,
+        postType,
         recommendReason,
       });
 
@@ -203,7 +251,7 @@ function Write({ onAuthExpired = () => {} }) {
     }
   };
 
-  const isPreviewDisabled = !recommendation && !isRecommending;
+  const isPreviewDisabled = !isNoticePost && !recommendation && !isRecommending;
 
   return (
     <main className="min-h-[620px] p-6">
@@ -229,9 +277,13 @@ function Write({ onAuthExpired = () => {} }) {
           <>
             <FontRecommendationHeader
               emptyMessage="문장을 입력하고 폰트 추천을 눌러보세요."
-              font={hasRecommendation ? recommendation : null}
-              isLogoAnimated={hasRecommendation}
-              reason={typedRecommendationReason}
+              font={hasRecommendation ? visibleRecommendation : null}
+              isLogoAnimated={hasRecommendation && !isNoticePost}
+              reason={
+                isNoticePost
+                  ? noticeRecommendationReason
+                  : typedRecommendationReason
+              }
             />
 
             <TextInput
@@ -263,25 +315,35 @@ function Write({ onAuthExpired = () => {} }) {
               >
                 Preview
               </TabButton>
-              {shouldShowDefaultFontNotice ? (
-                <p className="ml-auto mb-2 inline-flex items-center gap-2 text-xs text-[#d4d4d4]">
-                  <span>{defaultFontMessage}</span>
-                  {hasDefaultFontDownloadUrl ? (
-                    <a
-                      className="text-black underline-offset-2 transition-colors hover:text-[#d4d4d4] hover:underline"
-                      href={recommendation.downloadUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      폰트 보러가기
-                    </a>
-                  ) : (
-                    <span className="text-black">
-                      다운로드 페이지를 확인해주세요.
-                    </span>
-                  )}
-                </p>
-              ) : null}
+              <div className="ml-auto mb-1 flex items-center gap-3">
+                {shouldShowDefaultFontNotice ? (
+                  <p className="inline-flex items-center gap-2 text-xs text-[#d4d4d4]">
+                    <span>{defaultFontMessage}</span>
+                    {hasDefaultFontDownloadUrl ? (
+                      <a
+                        className="text-black underline-offset-2 transition-colors hover:text-[#d4d4d4] hover:underline"
+                        href={recommendation.downloadUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        폰트 보러가기
+                      </a>
+                    ) : (
+                      <span className="text-black">
+                        다운로드 페이지를 확인해주세요.
+                      </span>
+                    )}
+                  </p>
+                ) : null}
+                {isAdmin ? (
+                  <SegmentedToggle
+                    ariaLabel="게시글 유형"
+                    onChange={handlePostTypeChange}
+                    options={postTypeOptions}
+                    value={postType}
+                  />
+                ) : null}
+              </div>
             </div>
             <div className="min-h-[380px]">
               {activeTab === "write" ? (
@@ -297,14 +359,16 @@ function Write({ onAuthExpired = () => {} }) {
                   <div className="mt-3 flex justify-end">
                     <Button
                       className="min-w-[86px]"
-                      disabled={isRecommending}
+                      disabled={isRecommending || isNoticePost}
                       onClick={handleRecommend}
                     >
                       {isRecommending ? "추천 중.." : "폰트 추천"}
                     </Button>
                   </div>
                   <p className="mt-2 text-right text-xs text-[#d4d4d4]">
-                    문장을 수정하면 다른 폰트가 추천될 수 있어요.
+                    {isNoticePost
+                      ? "공지는 Pretendard 400으로 등록돼요."
+                      : "문장을 수정하면 다른 폰트가 추천될 수 있어요."}
                   </p>
                 </>
               ) : (
@@ -315,13 +379,13 @@ function Write({ onAuthExpired = () => {} }) {
                       isRecommending ? "blur-[2px]" : "blur-0",
                     ].join(" ")}
                   >
-                    {recommendation ? (
+                    {visibleRecommendation ? (
                       <div>
                         <div className="flex h-52 items-stretch border-b border-black">
                           <div className="thin-transparent-scrollbar h-full w-full overflow-y-auto px-5 pt-4 pb-3">
                             <PreservedText
                               className="text-[22px] leading-relaxed text-black"
-                              style={recommendation.previewFontStyle}
+                              style={visibleRecommendation.previewFontStyle}
                               text={previewText}
                             />
                           </div>

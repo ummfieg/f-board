@@ -85,7 +85,7 @@ function App() {
         <Route
           element={
             user ? (
-              <Write onAuthExpired={handleAuthExpired} />
+              <Write onAuthExpired={handleAuthExpired} user={user} />
             ) : (
               <Navigate replace to="/login" />
             )
@@ -95,7 +95,7 @@ function App() {
         <Route
           element={
             user ? (
-              <Write onAuthExpired={handleAuthExpired} />
+              <Write onAuthExpired={handleAuthExpired} user={user} />
             ) : (
               <Navigate replace to="/login" />
             )

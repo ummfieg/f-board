@@ -72,25 +72,50 @@ export async function getPost(postId) {
   return requestPost(`/posts/${postId}`);
 }
 
-export async function createPost({ title, content, fontId, recommendReason }) {
+export async function getNotices({ limit = 5 } = {}) {
+  const searchParams = new URLSearchParams({
+    limit: String(limit),
+  });
+
+  return requestPost(`/notices?${searchParams.toString()}`);
+}
+
+export async function createPost({
+  title,
+  content,
+  fontId,
+  postType = "post",
+  recommendReason,
+}) {
   return requestPost("/posts", {
     method: "POST",
     body: JSON.stringify({
       title,
       content,
       font_id: fontId,
+      post_type: postType,
       recommend_reason: recommendReason,
     }),
   });
 }
 
-export async function updatePost(postId, { title, content, fontId, recommendReason }) {
+export async function updatePost(
+  postId,
+  {
+    title,
+    content,
+    fontId,
+    postType = "post",
+    recommendReason,
+  },
+) {
   return requestPost(`/posts/${postId}`, {
     method: "PUT",
     body: JSON.stringify({
       title,
       content,
       font_id: fontId,
+      post_type: postType,
       recommend_reason: recommendReason,
     }),
   });
