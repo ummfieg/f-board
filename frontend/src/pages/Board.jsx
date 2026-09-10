@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ArrowUpIcon,
   PencilSquareIcon,
@@ -12,12 +12,14 @@ import PostCardSkeleton from "../components/PostCardSkeleton";
 import SearchInput from "../components/ui/SearchInput";
 import StateSection from "../components/ui/StateSection";
 import { getPosts } from "../api/posts";
+import useDebouncedValue from "../hooks/useDebouncedValue";
 import useScrollThreshold from "../hooks/useScrollThreshold";
 import { formatBoardPostDate } from "../utils/date";
 import { createWebFontStyle, hasWebFontUrl } from "../utils/webFont";
 
 const postsPerPage = 9;
 const skeletonPostCount = postsPerPage;
+const searchDebounceDelay = 400;
 
 function createBoardPostCardData(post) {
   const fontName = post.font?.name ?? "Unknown";
@@ -44,6 +46,7 @@ function Board({ user }) {
   const pageParam = Number(searchParams.get("page"));
   const currentPage = Number.isInteger(pageParam) && pageParam > 0 ? pageParam : 1;
   const searchQuery = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(searchQuery);
   const [posts, setPosts] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
@@ -60,8 +63,12 @@ function Board({ user }) {
     ? "검색 결과가 없어요."
     : "아직 기록된 폰트 보드가 없어요.";
   const currentBoardPath = `/${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
+  const debouncedSearchInput = useDebouncedValue(
+    searchInput,
+    searchDebounceDelay,
+  );
 
-  const updateBoardSearchParams = ({ page = currentPage, search = searchQuery }, options = {}) => {
+  const updateBoardSearchParams = useCallback(({ page = currentPage, search = searchQuery }, options = {}) => {
     const nextSearchParams = new URLSearchParams();
     const normalizedSearch = search.trim();
 
@@ -74,21 +81,16 @@ function Board({ user }) {
     }
 
     setSearchParams(nextSearchParams, options);
-  };
+  }, [currentPage, searchQuery, setSearchParams]);
 
   const handleSearchChange = (event) => {
-    updateBoardSearchParams(
-      {
-        page: 1,
-        search: event.target.value,
-      },
-      { replace: true },
-    );
+    setSearchInput(event.target.value);
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
   };
 
   const handleClearSearch = () => {
+    setSearchInput("");
     updateBoardSearchParams({ page: 1, search: "" }, { replace: true });
     setIsLoadingPosts(true);
     setPostsErrorMessage("");
@@ -131,6 +133,23 @@ function Board({ user }) {
       top: 0,
     });
   };
+
+  useEffect(() => {
+    if (
+      debouncedSearchInput === searchQuery ||
+      debouncedSearchInput !== searchInput
+    ) {
+      return;
+    }
+
+    updateBoardSearchParams(
+      {
+        page: 1,
+        search: debouncedSearchInput,
+      },
+      { replace: true },
+    );
+  }, [debouncedSearchInput, searchInput, searchQuery, updateBoardSearchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -184,7 +203,7 @@ function Board({ user }) {
           onChange={handleSearchChange}
           onClear={handleClearSearch}
           placeholder="제목, 폰트 이름 등 검색어를 입력하세요"
-          value={searchQuery}
+          value={searchInput}
         />
       </div>
 
