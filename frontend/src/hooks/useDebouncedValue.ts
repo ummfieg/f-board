@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-function useDebouncedValue(value, delay) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
 
   useEffect(() => {
     const timerId = setTimeout(() => {
