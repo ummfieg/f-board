@@ -1,17 +1,19 @@
-const fallbackFontFamily = "\"Pretendard\", sans-serif";
+import { Font, WebFont } from "../types/font";
 
-function createWebFontFamilyName(font) {
+const fallbackFontFamily = '"Pretendard", sans-serif';
+
+function createWebFontFamilyName(font: Font) {
   const fontId = font?.id ?? "unknown";
   const fontName = font?.name ?? "font";
 
   return `fboard-${fontId}-${fontName}`.replace(/[^a-zA-Z0-9_-]/g, "-");
 }
 
-function hasValidWebFontUrl(webfont) {
+function hasValidWebFontUrl(webfont: WebFont) {
   return typeof webfont.url === "string" && webfont.url.trim() !== "";
 }
 
-function getRegularWebFont(font) {
+function getRegularWebFont(font: Font) {
   const webfonts = Array.isArray(font?.webfonts) ? font.webfonts : [];
   const regularWebFont = webfonts.find((webfont) => {
     return hasValidWebFontUrl(webfont) && Number(webfont.weight) === 400;
@@ -24,23 +26,23 @@ function getRegularWebFont(font) {
   return webfonts.find((webfont) => hasValidWebFontUrl(webfont));
 }
 
-function getWebFontUrl(font) {
+function getWebFontUrl(font: Font) {
   const firstWebFont = getRegularWebFont(font);
 
   return firstWebFont?.url.trim() ?? null;
 }
 
-export function hasWebFontUrl(font) {
+export function hasWebFontUrl(font: Font) {
   return Boolean(getWebFontUrl(font));
 }
 
-function getWebFontWeight(font) {
+function getWebFontWeight(font: Font) {
   const firstWebFont = getRegularWebFont(font);
 
   return firstWebFont?.weight ?? 400;
 }
 
-export function registerWebFont(font) {
+export function registerWebFont(font: Font) {
   const fontUrl = getWebFontUrl(font);
 
   if (!fontUrl || typeof document === "undefined") {
@@ -69,7 +71,7 @@ export function registerWebFont(font) {
   return fontFamily;
 }
 
-export function createWebFontStyle(font) {
+export function createWebFontStyle(font: Font) {
   const fontFamily = registerWebFont(font);
 
   if (!fontFamily) {
