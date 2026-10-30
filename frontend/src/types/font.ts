@@ -4,7 +4,7 @@ export type WebFont = {
 };
 
 export type Font = {
-  id: number;
+  id: number | null;
   name: string;
   webfonts: WebFont[];
 };
