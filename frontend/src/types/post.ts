@@ -26,3 +26,11 @@ export type PostUser = {
   nickname: string;
   role: string;
 };
+
+export type PostWriteParams = {
+  title: string;
+  content: string;
+  fontId?: number | null;
+  recommendReason: string;
+  postType?: string;
+};

@@ -1,16 +1,25 @@
 import { refreshLogin } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+import type { PostsResponse, PostWriteParams } from "../types/post";
+
+type GetPostsParams = {
+  page: number;
+  pageSize: number;
+  searchQuery: string;
+};
 
 class PostRequestError extends Error {
-  constructor(message, status) {
+  status: number;
+
+  constructor(message: string, status: number) {
     super(message);
     this.name = "PostRequestError";
     this.status = status;
   }
 }
 
-async function parsePostErrorMessage(response) {
+async function parsePostErrorMessage(response: Response) {
   const fallbackMessage = "게시글 요청을 처리하지 못했습니다.";
 
   try {
@@ -21,7 +30,7 @@ async function parsePostErrorMessage(response) {
   }
 }
 
-async function requestPost(path, options = {}) {
+async function requestPost(path: string, options: RequestInit = {}) {
   let response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
     credentials: "include",
@@ -55,7 +64,11 @@ async function requestPost(path, options = {}) {
   return response.json();
 }
 
-export async function getPosts({ page, pageSize, searchQuery }) {
+export async function getPosts({
+  page,
+  pageSize,
+  searchQuery,
+}: GetPostsParams): Promise<PostsResponse> {
   const searchParams = new URLSearchParams({
     page: String(page),
     page_size: String(pageSize),
@@ -68,7 +81,7 @@ export async function getPosts({ page, pageSize, searchQuery }) {
   return requestPost(`/posts?${searchParams.toString()}`);
 }
 
-export async function getPost(postId) {
+export async function getPost(postId: string) {
   return requestPost(`/posts/${postId}`);
 }
 
@@ -86,7 +99,7 @@ export async function createPost({
   fontId,
   postType = "post",
   recommendReason,
-}) {
+}: PostWriteParams) {
   return requestPost("/posts", {
     method: "POST",
     body: JSON.stringify({
@@ -100,14 +113,14 @@ export async function createPost({
 }
 
 export async function updatePost(
-  postId,
+  postId: string,
   {
     title,
     content,
     fontId,
     postType = "post",
     recommendReason,
-  },
+  }: PostWriteParams,
 ) {
   return requestPost(`/posts/${postId}`, {
     method: "PUT",
@@ -121,7 +134,7 @@ export async function updatePost(
   });
 }
 
-export async function deletePost(postId) {
+export async function deletePost(postId: string) {
   return requestPost(`/posts/${postId}`, {
     method: "DELETE",
   });
